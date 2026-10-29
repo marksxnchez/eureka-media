@@ -31,7 +31,10 @@ OUT = f"{D}/episodios/{num}"; os.makedirs(OUT, exist_ok=True)
 
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 print("dispositivo:", DEV, flush=True)
-if DEV == "cpu": torch.set_num_threads(os.cpu_count() or 2)
+if DEV == "cpu":
+    torch.set_num_threads(os.cpu_count() or 2)
+    _tl = torch.load  # la librería asume GPU al cargar sus pesos
+    torch.load = lambda *a, **k: _tl(*a, **{**k, "map_location": k.get("map_location") or "cpu"})
 ck = torch.load(ADAPTER, map_location=DEV)
 cfg = ck["lora_config"]
 m = ChatterboxMultilingualTTS.from_pretrained(device=DEV)

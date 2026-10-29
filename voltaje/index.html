@@ -145,6 +145,8 @@ button:focus-visible{outline:3px solid var(--bombilla);outline-offset:3px}
 .acard.locked{background:var(--noche-2);color:var(--crema-tenue);border:2px dashed var(--crema-linea);align-items:center;justify-content:center;text-align:center}
 .acard.locked .n{color:var(--crema-tenue)}
 .acard.locked svg{width:34px;height:34px;opacity:.35}
+.lang-row{display:flex;justify-content:flex-end}
+.lang{font-weight:800;font-size:13px;color:var(--crema);border:1px solid var(--crema-linea);border-radius:999px;padding:6px 14px;background:var(--noche-2)}
 /* Imagen de la pregunta */
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .pic{font-size:54px;line-height:1;width:84px;height:84px;flex:none;display:grid;place-items:center;border-radius:22px;background:var(--noche);box-shadow:inset 0 0 0 3px var(--bombilla);margin-top:-4px}
@@ -253,7 +255,145 @@ const Q=[
  {id:54,e:'🧊',t:'op',tema:'Geografía',q:'¿Cuál es el desierto más grande del mundo?',opts:['El Sáhara','La Antártida','El Gobi'],a:1,titulo:'El desierto helado',dato:'Un desierto es un sitio donde casi no llueve, no donde hay arena. Y en la Antártida casi no cae nada.',src:'Britannica y WorldAtlas'},
  {id:55,e:'🦈',t:'vf',tema:'Animales',q:'Los tiburones existen desde antes que los árboles.',a:0,titulo:'Tiburones antiguos',dato:'Cuando aparecieron, en tierra solo había musgos. Y han sobrevivido a cinco extinciones masivas.',src:'Discover Wildlife y EarthDate'}
 ];
-const TIPO={vf:'Verdad o mentira',op:'Elige una',num:'Más o menos'};
+/* English version of every card (same ids, same answer order) */
+const QEN={
+ 1:{tema:'Your body',q:'Muscle soreness is caused by lactic acid crystals.',titulo:'Sore muscles',dato:'Lactic acid leaves the muscle within a few hours. Soreness comes from tiny tears your body repairs, and the muscle ends up a bit stronger.',src:'Clínica Universidad de Navarra and Universidad de Murcia'},
+ 2:{tema:'History',q:'Before pumpkins, people carved turnips for Halloween.',titulo:'Halloween turnips',dato:'In Ireland and Scotland they carved faces into turnips because of the legend of Stingy Jack. In America they switched to pumpkins.',src:'HISTORY.com and Clemson University'},
+ 3:{tema:'Tech',q:'Your phone gets wet. What actually works?',opts:['Putting it in a bowl of rice','Tapping it with the port facing down and letting it dry','Using a hair dryer'],titulo:'Phones and rice',dato:'Apple itself advises against rice: grains and dust can get into the charging port.',src:'Apple Support and Gazelle\'s drying test'},
+ 4:{tema:'Records',q:'Charles Osborne had hiccups non-stop for… more or less than 50 years?',titulo:'68 years of hiccups',dato:'They started in 1922 and stopped in 1990: 68 years. It\'s a Guinness World Record.',src:'Guinness World Records and Smithsonian Magazine'},
+ 5:{tema:'Spain',q:'Spain moved its clocks forward in 1940 "temporarily" and never went back.',titulo:'One hour ahead',dato:'By geography it should share London\'s time. That\'s why in Galicia, in summer, the sun sets after 10 pm.',src:'Euronews and Moncloa.com'},
+ 6:{tema:'Cooking',q:'Why do you cry when you cut onions?',opts:['Because of the strong smell','It releases an irritating gas that reaches your eyes','Because the juice splashes you'],titulo:'The onion fights back',dato:'Cutting its cells mixes two substances that form an irritating gas. A sharp knife and a cold onion help.',src:'Mental Floss and Intermountain Health'},
+ 7:{tema:'Myths',q:'If you swallow gum, it stays in your stomach for 7 years.',titulo:'Chewing gum',dato:'You can\'t digest it, but your gut pushes it along like everything else and it\'s out in a few days.',src:'Mayo Clinic and ScienceABC'},
+ 8:{tema:'History',q:'How many times did Victor Lustig "sell" the Eiffel Tower?',opts:['Never, it\'s a legend','Once','Twice'],titulo:'The Eiffel Tower, sold',dato:'In 1925 he "sold" it to a scrap dealer, who felt so foolish he never reported it. So he tried again.',src:'Mental Floss and The Hustle'},
+ 9:{tema:'History',q:'Violet Jessop was on board the Olympic, the Titanic and the Britannic. How many of their disasters did she survive?',opts:['One','Two','All three'],titulo:'Miss Unsinkable',dato:'She was there for the Olympic collision (1911), the sinking of the Titanic (1912) and the Britannic, which hit a mine in World War I.',src:'Mental Floss and History.com'},
+ 10:{tema:'Animals',q:'The color red makes bulls angry.',titulo:'Bulls and red',dato:'They charge at movement. With still flags of any color they barely react.',src:'Live Science and Ripley\'s'},
+ 11:{tema:'History',q:'One man survived both the Hiroshima and Nagasaki bombs.',titulo:'Two atomic bombs',dato:'Tsutomu Yamaguchi was in Hiroshima on business and went home to Nagasaki just before the second bomb. He lived to 93.',src:'Guinness World Records and ABC News'},
+ 12:{tema:'Space',q:'You can see the Great Wall of China from space with the naked eye.',titulo:'The Great Wall',dato:'China\'s first astronaut said in 2003 that he didn\'t see it. It\'s long, but narrow and the same color as the land.',src:'Scientific American and BBC Sky at Night'},
+ 13:{tema:'Cooking',q:'Microwaves penetrate food… more or less than 5 cm (2 in)?',titulo:'The microwave',dato:'Only one or two centimeters. Spread food thin and stir halfway through.',src:'Maldita Ciencia and Xataka'},
+ 14:{tema:'History',q:'Hiroo Onoda kept fighting in the jungle because he didn\'t believe the war was over. Until when?',opts:['1946','1960','1974'],titulo:'Onoda\'s war',dato:'Almost 29 years after World War II ended. He only surrendered when his former commander came to order it in person.',src:'History Hit and USNI News'},
+ 15:{tema:'Shopping',q:'If a barcode starts with 84, the product was made in Spain.',titulo:'Barcode 84',dato:'It shows where the company is registered, not where the product was made. Check the label for the origin.',src:'Maldita and Qamarero'},
+ 16:{tema:'Your body',q:'Ice cream gives you brain freeze. What helps?',opts:['Pressing your tongue to the roof of your mouth','Drinking cold water','Holding your nose'],titulo:'Brain freeze',dato:'The cold hits the roof of your mouth and the nerve confuses the pain with your forehead. Warming it with your tongue stops it.',src:'Popular Science and Healthline'},
+ 17:{tema:'Barcelona',q:'Who designed Barcelona\'s Eixample with its cut-off corners?',opts:['Antoni Gaudí','Ildefons Cerdà','Lluís Domènech i Montaner'],titulo:'Eixample corners',dato:'Cerdà cut them in his 1860 plan for visibility and traffic flow. Before cars even existed.',src:'La Nación and Geography Fieldwork'},
+ 18:{tema:'Cooking',q:'Bread goes stale because it dries out.',titulo:'Stale bread',dato:'It\'s the starch crystallizing. The fridge speeds it up; the freezer almost stops it.',src:'Directo al Paladar and El Cronista'},
+ 19:{tema:'Animals',q:'Dogs catch their owner\'s yawns more than a stranger\'s.',titulo:'Contagious yawns',dato:'Between half and two thirds of adults catch yawns. And dogs catch them more from people they know.',src:'Live Science, Medical News Today and Phys.org'},
+ 20:{tema:'Your body',q:'Why do your fingers wrinkle in water?',opts:['The skin soaks up water','Your nervous system does it','Your hands get cold'],titulo:'Wrinkly fingers',dato:'It\'s a nervous system response, and it helps you grip wet things. Rain tires for your hands.',src:'Smithsonian and California Academy of Sciences'},
+ 21:{tema:'Barcelona',q:'With the cross on the Tower of Jesus, is the Sagrada Família more or less than 170 meters tall?',titulo:'The tallest church',dato:'It has measured 172.5 m since February 2026, overtaking Ulm Minster in the centenary of Gaudí\'s death.',src:'¡HOLA!, Vatican News and Forbes'},
+ 22:{tema:'Myths',q:'Vikings wore horned helmets.',titulo:'Viking horns',dato:'Not a single one has been found. They got them in 1876, in a Wagner opera.',src:'History Hit and Mental Floss'},
+ 23:{tema:'Myths',q:'Napoleon was very short for his time.',titulo:'Napoleon',dato:'He was almost 1.70 m (5\'7"), normal back then. The myth comes from mixing up French and English inches, and from British cartoonists.',src:'Today I Found Out and English Plus Podcast'},
+ 24:{tema:'Animals',q:'How many hearts does an octopus have?',opts:['One','Two','Three'],titulo:'Three hearts',dato:'Two for the gills and one for the body. And its blood is blue because it uses copper instead of iron.',src:'BBC Science Focus and ScienceABC'},
+ 25:{tema:'Animals',q:'Bats are blind.',titulo:'Bats',dato:'No bat is blind. Many hunt with the echo of their own calls, but they can see too, and some see very well.',src:'Reconnect With Nature and FactMyth'},
+ 26:{tema:'Your body',q:'A newborn baby has… more or less than 250 bones?',titulo:'Baby bones',dato:'Around 300. Adults have 206: they aren\'t lost, they fuse together.',src:'Healthline and Popular Science'},
+ 27:{tema:'Travel',q:'What exactly is Big Ben?',opts:['The clock tower','The bell','The clock'],titulo:'Big Ben',dato:'It\'s the bell. The tower has been called the Elizabeth Tower since 2012.',src:'History.com and GeekDad'},
+ 28:{tema:'Animals',q:'According to a 2019 experiment, what are zebra stripes for?',opts:['To confuse lions','So flies can\'t land','To keep cool'],titulo:'Zebra stripes',dato:'They dressed horses as zebras and flies couldn\'t manage to land on them.',src:'University of Bristol and Axios'},
+ 29:{tema:'History',q:'The shortest war in history lasted… more or less than an hour?',titulo:'The shortest war',dato:'About 38 minutes, between Britain and Zanzibar. And the loser had to pay for the shells fired at it.',src:'Wikipedia and History Hit'},
+ 30:{tema:'Barcelona',q:'A spy from Barcelona convinced Hitler the invasion would come at Calais.',titulo:'Garbo',dato:'Joan Pujol invented a whole network of fake spies. Both sides decorated him.',src:'English Heritage and BBC Mundo'},
+ 31:{tema:'Myths',q:'Einstein failed math at school.',titulo:'Einstein',dato:'He denied it himself in 1935. The myth may come from a grading scale that was reversed at his Swiss school.',src:'TIME and History.com'},
+ 32:{tema:'Food',q:'Honey never goes bad.',titulo:'Honey',dato:'Honey thousands of years old has been found in Egyptian tombs. Little water, lots of acid and a trick from the bees.',src:'Smithsonian Magazine and Discover Magazine'},
+ 33:{tema:'Your body',q:'The muscle that gives you goosebumps is connected to the cells that grow new hair.',titulo:'Goosebumps',dato:'Under every hair there\'s a tiny muscle. In 2020, Harvard researchers found in mice that this muscle and its nerve are linked to the cells that make hair.',src:'Neuroscience News and Salon'},
+ 34:{tema:'Science',q:'Air scatters violet light even more than blue. So why is the sky blue and not violet?',opts:['Less violet arrives from the sun and our eyes are more sensitive to blue','The sea reflects its color onto the sky','Violet gets stuck in the ozone layer'],titulo:'Blue sky',dato:'Air scatters blue light much more than red. At sunset the blue is lost along the way, so it looks orange.',src:'Met Office and Royal Museums Greenwich'},
+ 35:{tema:'Your body',q:'Why do you see stars when you stand up fast?',opts:['Blood drops to your legs and your brain gets less for a moment','Your blood pressure suddenly shoots up','Your eyes get tired'],titulo:'Seeing stars',dato:'Your body usually fixes it in seconds. If it happens often or you faint, talk to your doctor.',src:'MSD Manual and Clínica Universidad de Navarra'},
+ 36:{tema:'Animals',q:'Fish have a three-second memory.',titulo:'Fish memory',dato:'Fish trained to link a sound with food still came back to it months later, out at sea.',src:'Practical Fishkeeping and Mental Floss'},
+ 37:{tema:'Travel',q:'The Dead Sea has… more or less than 5 times the salt of normal seawater?',titulo:'The Dead Sea',dato:'About ten times more. With so much salt the water pushes you up and you can\'t sink.',src:'How It Works and ScienceABC'},
+ 38:{tema:'Animals',q:'A camel\'s hump stores water.',titulo:'The camel\'s hump',dato:'It\'s fat, up to about 35 kilos. And when it finds water it can drink over a hundred liters in fifteen minutes.',src:'National Geographic and Cleveland Zoo Society'},
+ 39:{tema:'Animals',q:'Ostriches bury their heads in the sand when they\'re scared.',titulo:'Ostriches',dato:'If they did, they\'d suffocate. They put their heads in the nest to turn their eggs.',src:'National Geographic Kids and McGill OSS'},
+ 40:{tema:'Your body',q:'Some people sneeze when they look at the sun, and it runs in families.',titulo:'Sun sneezes',dato:'It\'s called the photic sneeze reflex. You\'re not weird: it\'s inherited.',src:'Live Science and PBS'},
+ 41:{tema:'Science',q:'A doctor cracked the knuckles of only one hand for 60 years. What did he find?',opts:['Arthritis in that hand','No difference between his hands','Longer fingers'],titulo:'Cracking knuckles',dato:'He compared both hands and saw no difference. The experiment won him an Ig Nobel Prize.',src:'The Tech and Improbable Research'},
+ 42:{tema:'Travel',q:'When did the Leaning Tower of Pisa start to lean?',opts:['Before it was finished, at the second floor','In an earthquake in 1900','During World War II'],titulo:'The Tower of Pisa',dato:'It leaned while it was being built. Wars paused the work, gave the ground time to settle and saved it.',src:'Wikipedia and Mental Floss'},
+ 43:{tema:'Barcelona',q:'What was Park Güell originally meant to be?',opts:['A zoo','A luxury housing estate','A cemetery'],titulo:'Park Güell',dato:'60 plots were planned and only two sold. Gaudí himself lived in one of the houses.',src:'My Modern Met and Barcelona-Tickets'},
+ 44:{tema:'Barcelona',q:'Barcelona\'s La Rambla used to be a stream bed.',titulo:'La Rambla',dato:'It was a seasonal stream coming down from Collserola beside the city wall. Even the name comes from Arabic: sandy riverbed.',src:'Amics de la Rambla and Barcelona Urbana'},
+ 45:{tema:'Spain',q:'Who drew the Chupa Chups logo?',opts:['Joan Miró','Salvador Dalí','Pablo Picasso'],titulo:'The Chupa Chups logo',dato:'Dalí drew it in under an hour in 1969. And he advised putting it on top of the wrapper, not on the sides.',src:'Wikipedia and Tasting Table'},
+ 46:{tema:'Spain',q:'The mop with a wringer bucket is a Spanish invention.',titulo:'The mop',dato:'Manuel Jalón saw how aircraft hangars were cleaned in the US and in 1956 brought it into homes.',src:'Público and Telefónica'},
+ 47:{tema:'Spain',q:'What did Isaac Peral launch in 1888?',opts:['An electric submarine that fired torpedoes','The first steamship','A seaplane'],titulo:'Peral\'s submarine',dato:'It worked underwater and fired torpedoes. Even so, it was abandoned.',src:'Biografías y Vidas and FECYT'},
+ 48:{tema:'History',q:'Cleopatra lived closer in time to the Moon landing than to the building of the Great Pyramid.',titulo:'Cleopatra',dato:'When she was born, the Great Pyramid was already about 2,500 years old.',src:'WorldAtlas and Lenz'},
+ 49:{tema:'History',q:'The University of Oxford is older than the Aztec city of Tenochtitlan.',titulo:'Oxford and the Aztecs',dato:'Teaching was already happening at Oxford around 1096. Tenochtitlan was founded in 1325.',src:'Smithsonian Magazine and FactMyth'},
+ 50:{tema:'Your body',q:'You\'re taller in the morning than at night. Is the difference more or less than 5 cm (2 in)?',titulo:'Taller in the morning',dato:'About one centimeter. The discs in your spine get squashed during the day and recover overnight.',src:'Jamaica Hospital Medical Center and Indiana Public Media'},
+ 51:{tema:'Tech',q:'What did the first text message in history say, in 1992?',opts:['Hello world','Merry Christmas','Happy new year'],titulo:'The first text',dato:'Two words: Merry Christmas. And the person who got it couldn\'t reply, because his phone couldn\'t send messages.',src:'Wikipedia and History.com'},
+ 52:{tema:'Food',q:'Bananas are slightly radioactive.',titulo:'Radioactive bananas',dato:'Because of their potassium. So little that it\'s used as a joke unit of measure. And so are you.',src:'Wikipedia and Today I Found Out'},
+ 53:{tema:'Food',q:'Botanically, strawberries are berries and bananas aren\'t.',titulo:'Strawberries and bananas',dato:'It\'s the other way round: bananas are berries and strawberries aren\'t. Each little dot on a strawberry is a fruit.',src:'Science Notes and ZME Science'},
+ 54:{tema:'Geography',q:'What is the largest desert in the world?',opts:['The Sahara','Antarctica','The Gobi'],titulo:'The frozen desert',dato:'A desert is a place where it hardly rains, not where there\'s sand. And almost nothing falls in Antarctica.',src:'Britannica and WorldAtlas'},
+ 55:{tema:'Animals',q:'Sharks have existed since before trees.',titulo:'Ancient sharks',dato:'When they appeared, there were only mosses on land. And they\'ve survived five mass extinctions.',src:'Discover Wildlife and EarthDate'}
+};
+/* Idioma: #en / #es en el enlace, o lo que eligió el jugador, o el idioma del navegador */
+const LANG=(()=>{
+  const h=(location.hash||'').slice(1).toLowerCase();
+  if(h==='en'||h==='es'){try{localStorage.setItem('eureka-lang',h)}catch(e){}return h}
+  try{const s=localStorage.getItem('eureka-lang');if(s==='en'||s==='es')return s}catch(e){}
+  return /^es|^ca|^gl|^eu/i.test(navigator.language||'es')?'es':'en';
+})();
+document.documentElement.lang=LANG;
+if(LANG==='en') Q.forEach(x=>Object.assign(x,QEN[x.id]||{}));
+function setLang(l){try{localStorage.setItem('eureka-lang',l)}catch(e){}location.hash=l;location.reload()}
+const pl=(n,one,many)=>n===1?one:many;
+const S=LANG==='en'?{
+  tipo:{vf:'True or false',op:'Pick one',num:'More or less'},
+  vf:['True','False'], num:['More','Less'],
+  tagline:'Bet voltage on what you think you know. Get it right and the bulb lights up. Get it wrong and a fuse blows.',
+  best:'Best score', album:'Album', games:'Games',
+  play:'Quick game', playSub:n=>`${n} questions · 3 fuses`,
+  daily:'Daily challenge', dailySub:n=>`${n} questions, the same for everyone`, done:s=>'Done: '+s, nuevo:'New',
+  duel:'1-on-1 duel', duelSub:'Against the machine or a friend · first right answer wins',
+  albumBtn:'Fact album', albumSub:'Every right answer unlocks a card',
+  how:'How to play',
+  rules:['<b>Pick your voltage</b> before answering: 1, 2 or 3 bolts. The surer you are, the more you risk.','<b>Right:</b> +10, +25 or +50 points. <b>Wrong:</b> you lose a fuse, or two if you went for 3 bolts.','<b>3 in a row</b> = Eureka! The bulb lights up and everything scores double until you miss.','Every fuse left at the end is worth 30 extra points.'],
+  langBtn:'Español', fuse:'Fuse', fuses:n=>`${n} fuses`, points:'Points', streak:n=>'Streak '+n,
+  qOf:(t,i,n)=>`${t} · Question ${i} of ${n}`, yourVolt:'Your voltage', risk:n=>n>1?'risk 2 fuses':'risk 1 fuse',
+  eureka:'Eureka! Everything scores double', newCard:'New card in your album',
+  right:'Correct!', wrong:'Nope', lost:n=>`−${n} ${pl(n,'fuse','fuses')}`, sources:'Sources: ',
+  seeRes:'See result', blown:'All fuses blown · See result', next:'Next question',
+  shareHead:d=>'Eureka Voltaje'+(d?' · Challenge '+d:''), sharePts:(s,f)=>`${s} points · ${f} ${pl(f,'fuse','fuses')} left`,
+  lit:'Bulb lit!', dark:'Total blackout',
+  bonus:(b,f)=>`Includes ${b} points for ${f} ${pl(f,'fuse','fuses')} left. `, cards:c=>`You unlocked ${c} new ${pl(c,'card','cards')}.`, again:'You already played today\'s challenge. Come back tomorrow.',
+  summary:'Answer summary', legend:'🟩 right · 🟨 right with 3 bolts · ⬛ wrong', copy:'Copy result', home:'Back to start', copied:'Copied. Paste it anywhere.',
+  yourAlbum:'Your album', back:'← Home', albumNote:(a,n)=>`${a} of ${n} cards. Answer a question right to unlock its fact.`, no:'No.',
+  duelT:'Duel', duelNote:(n,c)=>`${n} questions, 20 seconds each. Bet voltage: right adds your bet, wrong takes it away. First right answer gets the spark: +${c}.`,
+  yourName:'Your name', namePh:'Type your name', vsBot:'Against Edison', vsBotSub:'The machine gets about 7 in 10 right and takes 3 to 9 seconds',
+  vsFriend:'Against a friend, online', create:'Create room', orCode:'Or join with a code', join:'Join',
+  friendClaude:'Your friend has to open this same page with their Claude account.', friendWeb:'Your friend just opens this website and types the code.',
+  badCode:'The code is 4 letters or numbers.', you:'You', rival:'Rival', connecting:'Connecting…',
+  noRoomClaude:'Online duels aren\'t available here: open the page with a Claude account. Meanwhile, you can play Edison.',
+  joinFail:'Couldn\'t get into the room. Try again in a few seconds.', noRoom:'Can\'t find that room. Check the code, or ask your friend to create it again.', netFail:'Couldn\'t connect. Check your connection and try again.',
+  lostConn:'Lost connection to the room.', room:'Duel room', exit:'← Leave', roomCode:'Room code',
+  hostNote:'Give this code to your opponent. They open this same page and go to Duel → Join.', guestNote:'You\'re in. Waiting for the game to start.',
+  youTag:h=>'you'+(h?' · created the room':''), ready:'ready', created:'created the room', waiting:'Waiting for opponent…', start:'Start duel', missing:'Waiting for opponent',
+  answered:'answered', thinking:'thinking…', offline:'disconnected', bolts:n=>`${n} ${pl(n,'bolt','bolts')}`, noAns:'No answer', spark:'Spark: first right answer',
+  nextSoon:'Next one coming in a few seconds…', cautious:'careful', sure:'sure', allIn:'all in',
+  tie:'It\'s a tie', won:'You win!', winner:n=>`${n} wins`, rematchGuest:'If your opponent asks for a rematch, it starts by itself.', inAlbum:'The cards you got right are already in your album.', rematch:'Rematch', leave:'Leave'
+}:{
+  tipo:{vf:'Verdad o mentira',op:'Elige una',num:'Más o menos'},
+  vf:['Verdad','Mentira'], num:['Más','Menos'],
+  tagline:'Apuesta voltaje a lo que crees saber. Si aciertas, la bombilla se enciende. Si fallas, se funde un fusible.',
+  best:'Mejor marca', album:'Álbum', games:'Partidas',
+  play:'Partida rápida', playSub:n=>`${n} preguntas · 3 fusibles`,
+  daily:'Reto del día', dailySub:n=>`${n} preguntas, las mismas para todos`, done:s=>'Hecho: '+s, nuevo:'Nuevo',
+  duel:'Duelo 1 contra 1', duelSub:'Contra la máquina o contra un amigo · gana quien acierta primero',
+  albumBtn:'Álbum de curiosidades', albumSub:'Cada acierto desbloquea una carta',
+  how:'Cómo se juega',
+  rules:['<b>Elige voltaje</b> antes de responder: 1, 2 o 3 rayos. Más seguro estás, más arriesgas.','<b>Aciertas:</b> +10, +25 o +50 puntos. <b>Fallas:</b> pierdes un fusible, o dos si ibas a 3 rayos.','<b>Racha de 3 aciertos</b> = ¡Eureka! La bombilla se enciende y todo puntúa doble hasta que falles.','Cada fusible que te quede al final vale 30 puntos extra.'],
+  langBtn:'English', fuse:'Fusible', fuses:n=>`${n} fusibles`, points:'Puntos', streak:n=>'Racha '+n,
+  qOf:(t,i,n)=>`${t} · Pregunta ${i} de ${n}`, yourVolt:'Tu voltaje', risk:n=>n>1?'arriesgas 2 fusibles':'arriesgas 1 fusible',
+  eureka:'¡Eureka! Todo puntúa doble', newCard:'Carta nueva en tu álbum',
+  right:'¡Correcto!', wrong:'Pues no', lost:n=>`−${n} ${pl(n,'fusible','fusibles')}`, sources:'Fuentes: ',
+  seeRes:'Ver resultado', blown:'Se fundió todo · Ver resultado', next:'Siguiente pregunta',
+  shareHead:d=>'Eureka Voltaje'+(d?' · Reto del '+d:''), sharePts:(s,f)=>`${s} puntos · ${f} ${pl(f,'fusible','fusibles')} en pie`,
+  lit:'¡Bombilla encendida!', dark:'Apagón total',
+  bonus:(b,f)=>`Incluye ${b} puntos por ${f} ${pl(f,'fusible','fusibles')} en pie. `, cards:c=>`Has desbloqueado ${c} ${pl(c,'carta nueva','cartas nuevas')}.`, again:'Ya has jugado el reto de hoy. Mañana hay otro.',
+  summary:'Resumen de respuestas', legend:'🟩 acierto · 🟨 acierto a 3 rayos · ⬛ fallo', copy:'Copiar resultado', home:'Volver al inicio', copied:'Copiado. Pégalo donde quieras.',
+  yourAlbum:'Tu álbum', back:'← Inicio', albumNote:(a,n)=>`${a} de ${n} cartas. Acierta una pregunta para desbloquear su curiosidad.`, no:'Nº',
+  duelT:'Duelo', duelNote:(n,c)=>`${n} preguntas, 20 segundos cada una. Apuestas voltaje: si aciertas sumas lo apostado, si fallas lo restas. Quien acierta primero se lleva la chispa: +${c}.`,
+  yourName:'Tu nombre', namePh:'Escribe tu nombre', vsBot:'Contra Edison', vsBotSub:'La máquina acierta unas 7 de cada 10 y tarda de 3 a 9 segundos',
+  vsFriend:'Contra un amigo, online', create:'Crear sala', orCode:'O entra con un código', join:'Unirme',
+  friendClaude:'Tu amigo tiene que abrir esta misma página con su cuenta de Claude.', friendWeb:'Tu amigo solo tiene que abrir esta web y escribir el código.',
+  badCode:'El código tiene 4 letras o números.', you:'Tú', rival:'Rival', connecting:'Conectando…',
+  noRoomClaude:'El duelo online no está disponible aquí: hace falta abrir la página con una cuenta de Claude. Mientras, puedes jugar contra Edison.',
+  joinFail:'No he podido entrar en la sala. Prueba otra vez en unos segundos.', noRoom:'No encuentro esa sala. Revisa el código, o pide a tu amigo que la vuelva a crear.', netFail:'No he podido conectar. Revisa tu conexión y prueba otra vez.',
+  lostConn:'Se ha perdido la conexión con la sala.', room:'Sala de duelo', exit:'← Salir', roomCode:'Código de la sala',
+  hostNote:'Pásale este código a tu rival. Tiene que abrir esta misma página y entrar en Duelo → Unirme.', guestNote:'Estás dentro. Esperando a que empiece la partida.',
+  youTag:h=>'tú'+(h?' · creaste la sala':''), ready:'listo', created:'creó la sala', waiting:'Esperando rival…', start:'Empezar duelo', missing:'Falta tu rival',
+  answered:'ha respondido', thinking:'pensando…', offline:'desconectado', bolts:n=>`${n} ${pl(n,'rayo','rayos')}`, noAns:'Sin respuesta', spark:'Chispa: acertó primero',
+  nextSoon:'La siguiente llega en unos segundos…', cautious:'prudente', sure:'seguro', allIn:'a por todas',
+  tie:'Empate', won:'¡Has ganado!', winner:n=>`Gana ${n}`, rematchGuest:'Si tu rival pide la revancha, empezará sola.', inAlbum:'Las cartas que hayas acertado ya están en tu álbum.', rematch:'Revancha', leave:'Salir'
+};
+const TIPO=S.tipo;
 const BETS=[{v:1,pts:10,fus:1},{v:2,pts:25,fus:1},{v:3,pts:50,fus:2}];
 const ROUND=12, DAILY=7, FUSES=3;
 
@@ -266,6 +406,7 @@ let store=Object.assign({album:[],best:0,games:0,daily:null},load());
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function rng(seed){let h=1779033703^seed.length;for(let i=0;i<seed.length;i++){h=Math.imul(h^seed.charCodeAt(i),3432918353);h=h<<13|h>>>19}return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return (h>>>0)/4294967296}}
 function shuffle(a,r=Math.random){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function optsOf(q){return q.t==='vf'?S.vf:q.t==='num'?S.num:q.opts}
 
 const app=document.getElementById('app');
 let G=null;
@@ -274,35 +415,32 @@ function home(){
   leaveRoom(); G=null;
   const d=store.daily&&store.daily.date===today()?store.daily:null;
   app.innerHTML=`
+  <div class="lang-row"><button class="lang" id="b-lang">${S.langBtn}</button></div>
   <section class="hero">
     <div class="big-bulb">${bulb(3)}</div>
     <h1>Eureka <span>Voltaje</span></h1>
-    <p>Apuesta voltaje a lo que crees saber. Si aciertas, la bombilla se enciende. Si fallas, se funde un fusible.</p>
+    <p>${S.tagline}</p>
   </section>
   <div class="stats">
-    <div class="stat"><b>${store.best}</b><span>Mejor marca</span></div>
-    <div class="stat"><b>${store.album.length}/${Q.length}</b><span>Álbum</span></div>
-    <div class="stat"><b>${store.games}</b><span>Partidas</span></div>
+    <div class="stat"><b>${store.best}</b><span>${S.best}</span></div>
+    <div class="stat"><b>${store.album.length}/${Q.length}</b><span>${S.album}</span></div>
+    <div class="stat"><b>${store.games}</b><span>${S.games}</span></div>
   </div>
   <div class="menu">
-    <button class="btn btn-main" id="b-play">Partida rápida<small>${ROUND} preguntas · 3 fusibles</small></button>
-    <button class="btn btn-alt" id="b-daily"><span>Reto del día<small>${DAILY} preguntas, las mismas para todos</small></span><span class="tag">${d?'Hecho: '+d.score:'Nuevo'}</span></button>
-    <button class="btn btn-alt" id="b-duel"><span>Duelo 1 contra 1<small>Contra la máquina o contra un amigo · gana quien acierta primero</small></span><span class="tag">Nuevo</span></button>
-    <button class="btn btn-alt" id="b-album"><span>Álbum de curiosidades<small>Cada acierto desbloquea una carta</small></span><span class="tag">${store.album.length}</span></button>
+    <button class="btn btn-main" id="b-play">${S.play}<small>${S.playSub(ROUND)}</small></button>
+    <button class="btn btn-alt" id="b-daily"><span>${S.daily}<small>${S.dailySub(DAILY)}</small></span><span class="tag">${d?S.done(d.score):S.nuevo}</span></button>
+    <button class="btn btn-alt" id="b-duel"><span>${S.duel}<small>${S.duelSub}</small></span><span class="tag">${S.nuevo}</span></button>
+    <button class="btn btn-alt" id="b-album"><span>${S.albumBtn}<small>${S.albumSub}</small></span><span class="tag">${store.album.length}</span></button>
   </div>
   <div class="rules">
-    <h3>Cómo se juega</h3>
-    <ul>
-      <li><b>Elige voltaje</b> antes de responder: 1, 2 o 3 rayos. Más seguro estás, más arriesgas.</li>
-      <li><b>Aciertas:</b> +10, +25 o +50 puntos. <b>Fallas:</b> pierdes un fusible, o dos si ibas a 3 rayos.</li>
-      <li><b>Racha de 3 aciertos</b> = ¡Eureka! La bombilla se enciende y todo puntúa doble hasta que falles.</li>
-      <li>Cada fusible que te quede al final vale 30 puntos extra.</li>
-    </ul>
+    <h3>${S.how}</h3>
+    <ul>${S.rules.map(r=>`<li>${r}</li>`).join('')}</ul>
   </div>`;
   document.getElementById('b-play').onclick=()=>start('rapida');
   document.getElementById('b-daily').onclick=()=>{ if(d){ end(d,true) } else start('diario') };
   document.getElementById('b-album').onclick=album;
   document.getElementById('b-duel').onclick=duelMenu;
+  document.getElementById('b-lang').onclick=()=>setLang(LANG==='en'?'es':'en');
 }
 
 function cardHTML(q,meta){
@@ -321,25 +459,25 @@ function start(mode){
 
 function hud(){
   const lvl=Math.min(G.streak,3);
-  const fus=Array.from({length:FUSES},(_,k)=>`<span class="fuse ${k<G.fuses?'':'off'}" title="Fusible"></span>`).join('');
+  const fus=Array.from({length:FUSES},(_,k)=>`<span class="fuse ${k<G.fuses?'':'off'}" title="${S.fuse}"></span>`).join('');
   return `<div class="hud">
-    <div class="fuses" aria-label="${G.fuses} fusibles">${fus}</div>
-    <div class="score" aria-label="Puntos">${G.score}</div>
-    <div class="streak">${G.streak>=3?'x2':'Racha '+G.streak}${bulb(lvl)}</div>
+    <div class="fuses" aria-label="${S.fuses(G.fuses)}">${fus}</div>
+    <div class="score" aria-label="${S.points}">${G.score}</div>
+    <div class="streak">${G.streak>=3?'x2':S.streak(G.streak)}${bulb(lvl)}</div>
   </div>
   <div class="progress" aria-hidden="true"><i style="width:${(G.i/G.qs.length)*100}%"></i></div>`;
 }
 
 function question(){
   const q=G.qs[G.i];
-  const opts=q.t==='vf'?['Verdad','Mentira']:q.t==='num'?['Más','Menos']:q.opts;
+  const opts=optsOf(q);
   const two=q.t!=='op';
   app.innerHTML=hud()+`
-  ${cardHTML(q,`${q.tema} · Pregunta ${G.i+1} de ${G.qs.length}`)}
+  ${cardHTML(q,S.qOf(q.tema,G.i+1,G.qs.length))}
   <div class="bet">
-    <span class="eyebrow">Tu voltaje</span>
+    <span class="eyebrow">${S.yourVolt}</span>
     <div class="bet-row">${BETS.map(b=>`<button class="chip ${b.fus>1?'risk':''}" aria-pressed="${G.bet===b.v}" data-bet="${b.v}">
-      <span class="bolts">${BOLT.repeat(b.v)}</span><b>+${b.pts*(G.streak>=3?2:1)}</b><small>${b.fus>1?'arriesgas 2 fusibles':'arriesgas 1 fusible'}</small></button>`).join('')}</div>
+      <span class="bolts">${BOLT.repeat(b.v)}</span><b>+${b.pts*(G.streak>=3?2:1)}</b><small>${S.risk(b.fus)}</small></button>`).join('')}</div>
   </div>
   <div class="answers ${two?'two':''}">${opts.map((o,k)=>`<button class="ans" data-k="${k}">${o}</button>`).join('')}</div>
   <div id="reveal-slot"></div>`;
@@ -356,8 +494,8 @@ function answer(k){
     G.streak++;
     const mult=G.streak>3?2:1; // la racha de 3 enciende la bombilla para las siguientes
     pts=b.pts*mult; G.score+=pts;
-    if(G.streak===3) flash='<span class="eureka-flash">¡Eureka! Todo puntúa doble</span>';
-    if(!store.album.includes(q.id)){store.album.push(q.id);G.newCards++;unlock='<span class="unlock">Carta nueva en tu álbum</span>'}
+    if(G.streak===3) flash=`<span class="eureka-flash">${S.eureka}</span>`;
+    if(!store.album.includes(q.id)){store.album.push(q.id);G.newCards++;unlock=`<span class="unlock">${S.newCard}</span>`}
   } else {
     G.streak=0; G.fuses=Math.max(0,G.fuses-b.fus);
   }
@@ -366,12 +504,12 @@ function answer(k){
   const last=G.i===G.qs.length-1||G.fuses===0;
   document.getElementById('reveal-slot').outerHTML=`
   <section class="reveal ${right?'good':'bad'}">
-    <div class="verdict"><span>${right?'¡Correcto!':'Pues no'}</span><span class="pts">${right?'+'+pts:'−'+b.fus+' fusible'+(b.fus>1?'s':'')}</span></div>
+    <div class="verdict"><span>${right?S.right:S.wrong}</span><span class="pts">${right?'+'+pts:S.lost(b.fus)}</span></div>
     ${flash}
     <p>${q.dato}</p>
-    <p class="src">Fuentes: ${q.src}</p>
+    <p class="src">${S.sources}${q.src}</p>
     ${unlock}
-    <button class="btn btn-main" id="b-next" style="justify-content:center">${last?(G.fuses===0?'Se fundió todo · Ver resultado':'Ver resultado'):'Siguiente pregunta'}</button>
+    <button class="btn btn-main" id="b-next" style="justify-content:center">${last?(G.fuses===0?S.blown:S.seeRes):S.next}</button>
   </section>`;
   // la cabecera refleja fusibles y puntos al instante
   const h=app.querySelector('.hud'), p=app.querySelector('.progress');
@@ -390,20 +528,22 @@ function finish(){
 }
 
 function end(r,again){
-  const share=`Eureka Voltaje ${r.mode==='diario'?'· Reto del '+r.date.split('-').reverse().slice(0,2).join('/'):''}\n${r.grid}\n${r.score} puntos · ${r.fuses} fusible${r.fuses===1?'':'s'} en pie`;
+  const dd=r.mode==='diario'?r.date.split('-').reverse().slice(0,2).join('/'):'';
+  const url=/^https?:/.test(location.href)&&!IN_CLAUDE?'\n'+location.href.split('#')[0]+(LANG==='en'?'#en':''):'';
+  const share=`${S.shareHead(dd)}\n${r.grid}\n${S.sharePts(r.score,r.fuses)}${url}`;
   app.innerHTML=`
   <section class="end">
     <div class="big-bulb" style="width:80px;height:80px">${bulb(r.fuses>0?3:0)}</div>
-    <h2>${r.fuses>0?'¡Bombilla encendida!':'Apagón total'}</h2>
+    <h2>${r.fuses>0?S.lit:S.dark}</h2>
     <div class="final">${r.score}</div>
-    <p class="note">${r.bonus?`Incluye ${r.bonus} puntos por ${r.fuses} fusible${r.fuses===1?'':'s'} en pie. `:''}${r.cards?`Has desbloqueado ${r.cards} carta${r.cards===1?'':'s'} nueva${r.cards===1?'':'s'}.`:''}${again?'Ya has jugado el reto de hoy. Mañana hay otro.':''}</p>
-    <div class="grid-share" aria-label="Resumen de respuestas">${r.grid}</div>
-    <p class="note">🟩 acierto · 🟨 acierto a 3 rayos · ⬛ fallo</p>
+    <p class="note">${r.bonus?S.bonus(r.bonus,r.fuses):''}${r.cards?S.cards(r.cards):''}${again?S.again:''}</p>
+    <div class="grid-share" aria-label="${S.summary}">${r.grid}</div>
+    <p class="note">${S.legend}</p>
     <div class="row">
-      <button class="btn btn-main" id="b-copy">Copiar resultado</button>
-      <button class="btn btn-alt" id="b-home" style="justify-content:center">Volver al inicio</button>
+      <button class="btn btn-main" id="b-copy">${S.copy}</button>
+      <button class="btn btn-alt" id="b-home" style="justify-content:center">${S.home}</button>
     </div>
-    <p class="note" id="copied" hidden>Copiado. Pégalo donde quieras.</p>
+    <p class="note" id="copied" hidden>${S.copied}</p>
   </section>`;
   document.getElementById('b-home').onclick=home;
   document.getElementById('b-copy').onclick=()=>{
@@ -415,11 +555,11 @@ function fallback(t,ok){const ta=document.createElement('textarea');ta.value=t;d
 
 function album(){
   app.innerHTML=`
-  <div class="album-head"><h2>Tu álbum</h2><button class="back" id="b-back">← Inicio</button></div>
-  <p class="note">${store.album.length} de ${Q.length} cartas. Acierta una pregunta para desbloquear su curiosidad.</p>
+  <div class="album-head"><h2>${S.yourAlbum}</h2><button class="back" id="b-back">${S.back}</button></div>
+  <p class="note">${S.albumNote(store.album.length,Q.length)}</p>
   <div class="album">${Q.map(q=>store.album.includes(q.id)
-    ?`<div class="acard"><span class="pic-s" aria-hidden="true">${q.e}</span><span class="n">Nº ${String(q.id).padStart(2,'0')} · ${q.tema}</span><h4>${q.titulo}</h4><p>${q.dato}</p></div>`
-    :`<div class="acard locked"><span class="n">Nº ${String(q.id).padStart(2,'0')}</span>${bulb(0)}<span class="note">${q.tema}</span></div>`).join('')}</div>`;
+    ?`<div class="acard"><span class="pic-s" aria-hidden="true">${q.e}</span><span class="n">${S.no} ${String(q.id).padStart(2,'0')} · ${q.tema}</span><h4>${q.titulo}</h4><p>${q.dato}</p></div>`
+    :`<div class="acard locked"><span class="n">${S.no} ${String(q.id).padStart(2,'0')}</span>${bulb(0)}<span class="note">${q.tema}</span></div>`).join('')}</div>`;
   document.getElementById('b-back').onclick=home;
 }
 
@@ -429,13 +569,12 @@ let D=null, ROOM=null, ROOMAPI=null, unsubPeers=null, tickId=null, botId=null, a
 
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function nOpts(q){return q.t==='op'?3:2}
-function optsOf(q){return q.t==='vf'?['Verdad','Mentira']:q.t==='num'?['Más','Menos']:q.opts}
 function clearTimers(){clearInterval(tickId);clearTimeout(botId);clearTimeout(advId);tickId=botId=advId=null}
 function leaveRoom(){clearTimers();if(unsubPeers){try{unsubPeers()}catch(e){}unsubPeers=null}if(ROOM){ROOM.leave().catch(()=>{});ROOM=null}D=null}
 
 /* Puntos de una respuesta: acierto suma lo apostado (+ chispa si fue el primero en acertar), fallo lo resta */
 function qPoints(q,a,other){
-  if(!a) return {pts:0,txt:'Sin respuesta',spark:false};
+  if(!a) return {pts:0,spark:false};
   const b=BETS[a.b-1];
   if(a.k!==q.a) return {pts:-b.pts,spark:false};
   const beaten=other&&other.k===q.a&&other.ms<a.ms;
@@ -450,25 +589,25 @@ function totals(upto){
 function duelMenu(){
   leaveRoom(); G=null;
   app.innerHTML=`
-  <div class="album-head"><h2>Duelo</h2><button class="back" id="b-back">← Inicio</button></div>
-  <p class="note">${DUEL_N} preguntas, 20 segundos cada una. Apuestas voltaje: si aciertas sumas lo apostado, si fallas lo restas. Quien acierta primero se lleva la chispa: +${CHISPA}.</p>
-  <div class="field"><label for="nick">Tu nombre</label><input id="nick" maxlength="16" placeholder="Escribe tu nombre" value="${esc(store.nick||'')}"></div>
-  <button class="btn btn-main" id="b-bot"><span>Contra Edison<small>La máquina acierta unas 7 de cada 10 y tarda de 3 a 9 segundos</small></span></button>
+  <div class="album-head"><h2>${S.duelT}</h2><button class="back" id="b-back">${S.back}</button></div>
+  <p class="note">${S.duelNote(DUEL_N,CHISPA)}</p>
+  <div class="field"><label for="nick">${S.yourName}</label><input id="nick" maxlength="16" placeholder="${S.namePh}" value="${esc(store.nick||'')}"></div>
+  <button class="btn btn-main" id="b-bot"><span>${S.vsBot}<small>${S.vsBotSub}</small></span></button>
   <div class="panel">
-    <h3>Contra un amigo, online</h3>
-    <button class="btn btn-alt" id="b-create" style="justify-content:center">Crear sala</button>
-    <div class="join-row"><div class="field" style="flex:1"><label for="code">O entra con un código</label><input id="code" maxlength="4" placeholder="ABCD" autocomplete="off"></div><button class="btn btn-alt" id="b-join" style="align-self:flex-end">Unirme</button></div>
-    <p class="note" id="online-msg">${IN_CLAUDE?'Tu amigo tiene que abrir esta misma página con su cuenta de Claude.':'Tu amigo solo tiene que abrir esta web y escribir el código.'}</p>
+    <h3>${S.vsFriend}</h3>
+    <button class="btn btn-alt" id="b-create" style="justify-content:center">${S.create}</button>
+    <div class="join-row"><div class="field" style="flex:1"><label for="code">${S.orCode}</label><input id="code" maxlength="4" placeholder="ABCD" autocomplete="off"></div><button class="btn btn-alt" id="b-join" style="align-self:flex-end">${S.join}</button></div>
+    <p class="note" id="online-msg">${IN_CLAUDE?S.friendClaude:S.friendWeb}</p>
   </div>`;
   const saveNick=()=>{store.nick=(document.getElementById('nick').value||'').trim().slice(0,16);save()};
   document.getElementById('b-back').onclick=home;
   document.getElementById('b-bot').onclick=()=>{saveNick();startBot()};
   document.getElementById('b-create').onclick=()=>{saveNick();enterRoom(randomCode(),true)};
-  document.getElementById('b-join').onclick=()=>{saveNick();const c=(document.getElementById('code').value||'').trim().toUpperCase();if(!/^[A-Z0-9]{4}$/.test(c)){onlineMsg('El código tiene 4 letras o números.');return}enterRoom(c,false)};
+  document.getElementById('b-join').onclick=()=>{saveNick();const c=(document.getElementById('code').value||'').trim().toUpperCase();if(!/^[A-Z0-9]{4}$/.test(c)){onlineMsg(S.badCode);return}enterRoom(c,false)};
 }
 function onlineMsg(t){const m=document.getElementById('online-msg');if(m)m.textContent=t}
 function randomCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s}
-function myNick(){return store.nick||'Tú'}
+function myNick(){return store.nick||S.you}
 
 /* Contra la máquina */
 function startBot(){
@@ -520,22 +659,22 @@ async function peerRoom(code,host){
   };
 }
 async function enterRoom(code,host){
-  onlineMsg('Conectando…');
+  onlineMsg(S.connecting);
   let r=null;
   if(IN_CLAUDE){
     const api=await getRoomApi();
-    if(!api){onlineMsg('El duelo online no está disponible aquí: hace falta abrir la página con una cuenta de Claude. Mientras, puedes jugar contra Edison.');return}
-    try{r=await api.join('eureka-'+code.toLowerCase())}catch(e){onlineMsg('No he podido entrar en la sala. Prueba otra vez en unos segundos.');return}
+    if(!api){onlineMsg(S.noRoomClaude);return}
+    try{r=await api.join('eureka-'+code.toLowerCase())}catch(e){onlineMsg(S.joinFail);return}
   } else {
     try{r=await peerRoom(code,host)}catch(e){
       const t=e&&e.type;
       if(host&&t==='unavailable-id'){return enterRoom(randomCode(),true)}
-      onlineMsg(t==='peer-unavailable'?'No encuentro esa sala. Revisa el código, o pide a tu amigo que la vuelva a crear.':'No he podido conectar. Revisa tu conexión y prueba otra vez.');return}
+      onlineMsg(t==='peer-unavailable'?S.noRoom:S.netFail);return}
   }
   ROOM=r;
-  D={mode:'online',code,host,seed:null,qs:null,qi:-1,me:{nick:myNick(),ans:{}},opp:{nick:'Rival',ans:{},here:false},phase:'lobby',revealed:-1,oppRaw:null};
+  D={mode:'online',code,host,seed:null,qs:null,qi:-1,me:{nick:myNick(),ans:{}},opp:{nick:S.rival,ans:{},here:false},phase:'lobby',revealed:-1,oppRaw:null};
   ROOM.presence({nick:D.me.nick,host:!!host,ans:{seed:null,a:{}},game:null}).catch(()=>{});
-  unsubPeers=ROOM.onPeers(onRoomPeers,()=>{if(D&&D.phase==='lobby')lobby('Se ha perdido la conexión con la sala.')});
+  unsubPeers=ROOM.onPeers(onRoomPeers,()=>{if(D&&D.phase==='lobby')lobby(S.lostConn)});
   lobby();
 }
 function cleanAns(x,seed){
@@ -549,7 +688,7 @@ function onRoomPeers(change){
   const others=change.peers.filter(p=>!p.sameTab&&p.kind==='viewer');
   const opp=others[0]||null;
   D.opp.here=!!opp;
-  D.opp.nick=opp&&opp.presence&&opp.presence.nick?String(opp.presence.nick).slice(0,16):'Rival';
+  D.opp.nick=opp&&opp.presence&&opp.presence.nick?String(opp.presence.nick).slice(0,16):S.rival;
   D.oppRaw=opp?opp.presence.ans:null;
   if(!D.host){
     const hp=others.find(p=>p.presence&&p.presence.host);
@@ -573,18 +712,18 @@ function newGame(seed,announce){
 function lobby(err){
   D.phase='lobby';
   app.innerHTML=`
-  <div class="album-head"><h2>Sala de duelo</h2><button class="back" id="b-back">← Salir</button></div>
+  <div class="album-head"><h2>${S.room}</h2><button class="back" id="b-back">${S.exit}</button></div>
   <div class="panel">
-    <span class="eyebrow" style="text-align:center">Código de la sala</span>
+    <span class="eyebrow" style="text-align:center">${S.roomCode}</span>
     <div class="code">${esc(D.code)}</div>
-    <p class="note" style="text-align:center">${D.host?'Pásale este código a tu rival. Tiene que abrir esta misma página y entrar en Duelo → Unirme.':'Estás dentro. Esperando a que empiece la partida.'}</p>
+    <p class="note" style="text-align:center">${D.host?S.hostNote:S.guestNote}</p>
   </div>
   <div class="peers">
-    <div class="peer"><span>${esc(D.me.nick)}</span><small>tú${D.host?' · creaste la sala':''}</small></div>
-    ${D.opp.here?`<div class="peer"><span>${esc(D.opp.nick)}</span><small>${D.host?'listo':'creó la sala'}</small></div>`:`<div class="peer"><span style="color:var(--crema-tenue)">Esperando rival…</span><small></small></div>`}
+    <div class="peer"><span>${esc(D.me.nick)}</span><small>${S.youTag(D.host)}</small></div>
+    ${D.opp.here?`<div class="peer"><span>${esc(D.opp.nick)}</span><small>${D.host?S.ready:S.created}</small></div>`:`<div class="peer"><span style="color:var(--crema-tenue)">${S.waiting}</span><small></small></div>`}
   </div>
   ${err?`<p class="note" style="color:var(--ko)">${esc(err)}</p>`:''}
-  ${D.host?`<button class="btn btn-main" id="b-start" style="justify-content:center" ${D.opp.here?'':'disabled'}>${D.opp.here?'Empezar duelo':'Falta tu rival'}</button>`:''}`;
+  ${D.host?`<button class="btn btn-main" id="b-start" style="justify-content:center" ${D.opp.here?'':'disabled'}>${D.opp.here?S.start:S.missing}</button>`:''}`;
   document.getElementById('b-back').onclick=()=>{leaveRoom();duelMenu()};
   const s=document.getElementById('b-start'); if(s) s.onclick=hostStart;
 }
@@ -599,12 +738,12 @@ function hostAdvance(){
 /* Pantallas comunes del duelo */
 function versusHTML(){
   const t=totals(D.revealed);
-  const st=(a)=>D.phase==='q'?(a?'ha respondido':'pensando…'):'';
+  const st=(a)=>D.phase==='q'?(a?S.answered:S.thinking):'';
   const meA=D.me.ans[D.qi], opA=D.opp.ans[D.qi];
   return `<div class="versus">
     <div class="side ${D.phase==='q'&&meA?'done':''}"><span class="who">${esc(D.me.nick)}</span><span class="pts">${t.me}</span><span class="st">${st(meA)}</span></div>
     <span class="vs">VS</span>
-    <div class="side right ${D.phase==='q'&&opA?'done':''}"><span class="who">${esc(D.opp.nick)}</span><span class="pts">${t.op}</span><span class="st">${D.mode==='online'&&!D.opp.here?'desconectado':st(opA)}</span></div>
+    <div class="side right ${D.phase==='q'&&opA?'done':''}"><span class="who">${esc(D.opp.nick)}</span><span class="pts">${t.op}</span><span class="st">${D.mode==='online'&&!D.opp.here?S.offline:st(opA)}</span></div>
   </div>`;
 }
 function updateVersus(){const v=app.querySelector('.versus');if(v){const d=document.createElement('div');d.innerHTML=versusHTML();v.replaceWith(d.firstElementChild)}}
@@ -615,10 +754,10 @@ function goQuestion(i){
   const q=D.qs[i], opts=optsOf(q);
   app.innerHTML=versusHTML()+`
   <div class="timer" id="timer"><i style="width:100%"></i></div>
-  ${cardHTML(q,`${q.tema} · Pregunta ${i+1} de ${DUEL_N}`)}
+  ${cardHTML(q,S.qOf(q.tema,i+1,DUEL_N))}
   <div class="bet">
-    <span class="eyebrow">Tu voltaje</span>
-    <div class="bet-row">${BETS.map(b=>`<button class="chip" aria-pressed="${b.v===1}" data-bet="${b.v}"><span class="bolts">${BOLT.repeat(b.v)}</span><b>±${b.pts}</b><small>${b.v===1?'prudente':b.v===2?'seguro':'a por todas'}</small></button>`).join('')}</div>
+    <span class="eyebrow">${S.yourVolt}</span>
+    <div class="bet-row">${BETS.map(b=>`<button class="chip" aria-pressed="${b.v===1}" data-bet="${b.v}"><span class="bolts">${BOLT.repeat(b.v)}</span><b>±${b.pts}</b><small>${b.v===1?S.cautious:b.v===2?S.sure:S.allIn}</small></button>`).join('')}</div>
   </div>
   <div class="answers ${q.t!=='op'?'two':''}">${opts.map((o,k)=>`<button class="ans" data-k="${k}">${o}</button>`).join('')}</div>
   <div id="reveal-slot"></div>`;
@@ -661,17 +800,17 @@ function duelReveal(){
   app.querySelectorAll('.ans').forEach(el=>{const j=+el.dataset.k;el.disabled=true;if(j===q.a)el.classList.add('ok');else if(a&&j===a.k)el.classList.add('ko');else el.classList.add('dim')});
   app.querySelectorAll('.chip').forEach(c=>c.disabled=true);
   let unlock='';
-  if(a&&a.k===q.a&&!store.album.includes(q.id)){store.album.push(q.id);save();unlock='<span class="unlock">Carta nueva en tu álbum</span>'}
-  const line=(x,p)=>x?`<span>${esc(opts[x.k])} · ${x.b} rayo${x.b>1?'s':''} · ${(x.ms/1000).toFixed(1)} s</span><span class="p ${p.pts>=0?'plus':'minus'}">${p.pts>0?'+':''}${p.pts}</span>${p.spark?'<span class="spark">Chispa: acertó primero</span>':''}`:`<span>Sin respuesta</span><span class="p">0</span>`;
+  if(a&&a.k===q.a&&!store.album.includes(q.id)){store.album.push(q.id);save();unlock=`<span class="unlock">${S.newCard}</span>`}
+  const line=(x,p)=>x?`<span>${esc(opts[x.k])} · ${S.bolts(x.b)} · ${(x.ms/1000).toFixed(1)} s</span><span class="p ${p.pts>=0?'plus':'minus'}">${p.pts>0?'+':''}${p.pts}</span>${p.spark?`<span class="spark">${S.spark}</span>`:''}`:`<span>${S.noAns}</span><span class="p">0</span>`;
   const last=D.qi===DUEL_N-1;
   const next=D.mode==='bot'||D.host
-    ?`<button class="btn btn-main" id="b-next" style="justify-content:center">${last?'Ver resultado':'Siguiente pregunta'}</button>`
-    :`<p class="note" style="text-align:center">La siguiente llega en unos segundos…</p>`;
+    ?`<button class="btn btn-main" id="b-next" style="justify-content:center">${last?S.seeRes:S.next}</button>`
+    :`<p class="note" style="text-align:center">${S.nextSoon}</p>`;
   document.getElementById('reveal-slot').outerHTML=`
   <section class="reveal ${a&&a.k===q.a?'good':'bad'}">
     <div class="duel-res"><div><b>${esc(D.me.nick)}</b>${line(a,pm)}</div><div><b>${esc(D.opp.nick)}</b>${line(o,po)}</div></div>
     <p>${q.dato}</p>
-    <p class="src">Fuentes: ${q.src}</p>
+    <p class="src">${S.sources}${q.src}</p>
     ${unlock}
     ${next}
   </section>`;
@@ -687,12 +826,12 @@ function duelEnd(){
   app.innerHTML=`
   <section class="end">
     <div class="big-bulb" style="width:80px;height:80px">${bulb(win||tie?3:0)}</div>
-    <h2>${tie?'Empate':win?'¡Has ganado!':`Gana ${esc(D.opp.nick)}`}</h2>
+    <h2>${tie?S.tie:win?S.won:S.winner(esc(D.opp.nick))}</h2>
     ${versusHTML()}
-    <p class="note">${D.mode==='online'&&!D.host?'Si tu rival pide la revancha, empezará sola.':'Las cartas que hayas acertado ya están en tu álbum.'}</p>
+    <p class="note">${D.mode==='online'&&!D.host?S.rematchGuest:S.inAlbum}</p>
     <div class="row">
-      ${D.mode==='bot'||D.host?'<button class="btn btn-main" id="b-again" style="justify-content:center">Revancha</button>':''}
-      <button class="btn btn-alt" id="b-out" style="justify-content:center">Salir</button>
+      ${D.mode==='bot'||D.host?`<button class="btn btn-main" id="b-again" style="justify-content:center">${S.rematch}</button>`:''}
+      <button class="btn btn-alt" id="b-out" style="justify-content:center">${S.leave}</button>
     </div>
   </section>`;
   const ag=document.getElementById('b-again');

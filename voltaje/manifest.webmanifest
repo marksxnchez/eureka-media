@@ -1,0 +1,30 @@
+{
+  "name": "Eureka Voltaje",
+  "short_name": "Eureka",
+  "description": "Juego de curiosidades de Eureka: apuesta voltaje a lo que sabes, enciende la bombilla con rachas, completa el álbum y reta a tus amigos en duelos 1 contra 1.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0E1430",
+  "theme_color": "#0E1430",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

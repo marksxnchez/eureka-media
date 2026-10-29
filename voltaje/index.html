@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Eureka Voltaje</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;800&display=swap">
+<meta name="description" content="Juego de curiosidades de Eureka: apuesta voltaje a lo que sabes, enciende la bombilla con rachas, completa el álbum y reta a tus amigos en duelos 1 contra 1.">
+<meta name="theme-color" content="#0E1430">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eureka">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Eureka Voltaje">
+<meta property="og:description" content="Juego de curiosidades de Eureka: apuesta voltaje a lo que sabes, enciende la bombilla con rachas, completa el álbum y reta a tus amigos en duelos 1 contra 1.">
+<meta property="og:image" content="https://marksxnchez.github.io/eureka-media/voltaje/og.png">
+<meta property="og:url" content="https://marksxnchez.github.io/eureka-media/voltaje/">
+<meta name="twitter:card" content="summary_large_image">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.PEERJS_SRC='vendor/peerjs.min.js'</script>
+</head>
+<body>
+<style>
+/* Layout: una columna de juego estrecha, como la pantalla vertical de los vídeos; HUD arriba, tarjeta de pregunta, apuesta, respuestas. Paleta del canal (biblia). */
+:root{
+  --noche:#0E1430; --noche-2:#161E45; --noche-3:#222B5C;
+  --crema:#F5EBDD; --crema-tenue:rgba(245,235,221,.62); --crema-linea:rgba(245,235,221,.14);
+  --naranja:#FF8A1F; --bombilla:#FFD23F;
+  --ok:#52D69B; --ko:#FF6B6B;
+  --display:"Baloo 2","Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{min-height:100%}
+html{background:var(--noche)}
+body{background:var(--noche);color:var(--crema);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;
+  background-image:radial-gradient(circle at 50% -10%,rgba(255,210,63,.13),transparent 55%)}
+#app{max-width:520px;margin:0 auto;padding-block:20px 40px;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);line-height:1.05;margin:0;text-wrap:balance}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible{outline:3px solid var(--bombilla);outline-offset:3px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--crema-tenue);font-weight:800}
+
+/* Portada */
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding-top:12px}
+.hero h1{font-size:clamp(44px,12vw,64px);font-weight:800;letter-spacing:-.01em}
+.hero h1 span{color:var(--bombilla)}
+.hero p{color:var(--crema-tenue);max-width:34ch}
+.big-bulb{width:92px;height:92px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--noche-2);border-radius:14px;padding:12px 8px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-size:26px;color:var(--bombilla);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--crema-tenue)}
+.menu{display:flex;flex-direction:column;gap:10px}
+.btn{border-radius:16px;padding:16px 18px;font-weight:800;font-size:17px;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;transition:transform .12s}
+.btn:active{transform:scale(.98)}
+.btn small{display:block;font-weight:600;font-size:13px;opacity:.75}
+.btn-main{background:var(--naranja);color:var(--noche)}
+.btn-alt{background:var(--noche-2);border:1px solid var(--crema-linea)}
+.btn-alt .tag{background:var(--bombilla);color:var(--noche);border-radius:999px;padding:3px 10px;font-size:12px;white-space:nowrap}
+.rules{background:var(--noche-2);border-radius:16px;padding:16px 18px;display:grid;gap:10px;font-size:14.5px}
+.rules h3{font-size:19px}
+.rules li{margin-left:-6px}
+.rules ul{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--crema-tenue)}
+.rules b{color:var(--crema)}
+
+/* HUD */
+.hud{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fuses{display:flex;gap:6px}
+.fuse{width:30px;height:16px;border-radius:5px;border:2px solid var(--bombilla);position:relative;background:rgba(255,210,63,.18)}
+.fuse::after{content:"";position:absolute;left:4px;right:4px;top:50%;height:2px;background:var(--bombilla);transform:translateY(-50%)}
+.fuse.off{border-color:var(--crema-linea);background:transparent}
+.fuse.off::after{background:var(--crema-linea);transform:translateY(-50%) rotate(-25deg)}
+.score{font-family:var(--display);font-size:28px;font-variant-numeric:tabular-nums;color:var(--bombilla)}
+.streak{display:flex;align-items:center;gap:6px;font-weight:800;font-size:13px;color:var(--crema-tenue)}
+.streak svg{width:30px;height:30px}
+.progress{height:6px;background:var(--noche-2);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--naranja);border-radius:99px;transition:width .3s}
+
+/* Pregunta */
+.card{background:var(--crema);color:var(--noche);border-radius:22px;padding:22px 20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.card .type{align-self:flex-start;background:var(--noche);color:var(--bombilla);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.card h2{font-size:clamp(23px,6vw,28px);font-weight:800}
+.card .topic{font-size:13px;font-weight:700;color:#6B5E4E}
+
+.bet{display:flex;flex-direction:column;gap:8px}
+.bet-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.chip{background:var(--noche-2);border:2px solid var(--crema-linea);border-radius:14px;padding:10px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+.chip .bolts{display:flex;gap:1px;height:18px}
+.chip .bolts svg{width:12px;height:18px;fill:var(--crema-tenue)}
+.chip b{font-family:var(--display);font-size:18px;font-variant-numeric:tabular-nums}
+.chip small{font-size:11.5px;color:var(--crema-tenue)}
+.chip[aria-pressed="true"]{border-color:var(--bombilla);background:rgba(255,210,63,.12)}
+.chip[aria-pressed="true"] .bolts svg{fill:var(--bombilla)}
+.chip.risk small{color:var(--ko)}
+
+.answers{display:grid;gap:10px}
+.answers.two{grid-template-columns:1fr 1fr}
+.ans{background:var(--noche-3);border:2px solid transparent;border-radius:16px;padding:16px;font-weight:800;font-size:17px;text-align:left;min-height:58px;transition:transform .1s,background .2s}
+.answers.two .ans{text-align:center;font-family:var(--display);font-size:22px}
+.ans:hover{background:#2B3570}
+.ans.ok{background:var(--ok);color:var(--noche)}
+.ans.ko{background:var(--ko);color:var(--noche)}
+.ans.dim{opacity:.35}
+.ans:disabled{cursor:default}
+
+/* Revelación */
+.reveal{border-radius:20px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--crema-linea);background:var(--noche-2);animation:up .35s ease-out}
+.reveal.good{border-color:var(--ok)}
+.reveal.bad{border-color:var(--ko)}
+.reveal .verdict{font-family:var(--display);font-size:24px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.reveal.good .verdict{color:var(--ok)}
+.reveal.bad .verdict{color:var(--ko)}
+.reveal .pts{font-size:18px;font-variant-numeric:tabular-nums}
+.reveal .src{font-size:12.5px;color:var(--crema-tenue)}
+.reveal .unlock{font-size:13px;font-weight:800;color:var(--bombilla)}
+.eureka-flash{font-family:var(--display);font-size:15px;color:var(--noche);background:var(--bombilla);border-radius:10px;padding:6px 10px;align-self:flex-start}
+@keyframes up{from{transform:translateY(10px);opacity:.4}to{transform:none;opacity:1}}
+
+/* Final */
+.end{text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.end h2{font-size:40px}
+.end .final{font-family:var(--display);font-size:64px;color:var(--bombilla);line-height:1;font-variant-numeric:tabular-nums}
+.grid-share{font-size:26px;letter-spacing:4px;line-height:1.2}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%}
+.row .btn{flex:1 1 200px;justify-content:center}
+.note{font-size:13px;color:var(--crema-tenue)}
+
+/* Álbum */
+.album-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.album-head h2{font-size:30px}
+.back{font-weight:800;color:var(--crema-tenue);padding:6px 0}
+.album{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.acard{border-radius:16px;padding:14px;min-height:130px;display:flex;flex-direction:column;gap:6px;background:var(--crema);color:var(--noche)}
+.acard h4{margin:0;font-family:var(--display);font-size:16px;line-height:1.15}
+.acard p{font-size:12.5px;line-height:1.35;color:#3d3a52}
+.acard .n{font-size:11px;font-weight:800;color:#8a7a64;letter-spacing:.06em}
+.acard.locked{background:var(--noche-2);color:var(--crema-tenue);border:2px dashed var(--crema-linea);align-items:center;justify-content:center;text-align:center}
+.acard.locked .n{color:var(--crema-tenue)}
+.acard.locked svg{width:34px;height:34px;opacity:.35}
+/* Imagen de la pregunta */
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pic{font-size:54px;line-height:1;width:84px;height:84px;flex:none;display:grid;place-items:center;border-radius:22px;background:var(--noche);box-shadow:inset 0 0 0 3px var(--bombilla);margin-top:-4px}
+.acard .pic-s{font-size:30px;line-height:1}
+
+/* Duelo */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:800;color:var(--crema-tenue)}
+.field input{font:inherit;font-weight:800;font-size:17px;background:var(--noche-2);color:var(--crema);border:2px solid var(--crema-linea);border-radius:14px;padding:12px 14px;min-width:0}
+.field input:focus{outline:none;border-color:var(--bombilla)}
+.join-row{display:flex;gap:8px}
+.join-row input{flex:1;text-transform:uppercase;letter-spacing:.2em}
+.join-row .btn{flex:none}
+.panel{background:var(--noche-2);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:20px}
+.code{font-family:var(--display);font-size:52px;letter-spacing:.18em;color:var(--bombilla);text-align:center;line-height:1}
+.peers{display:flex;flex-direction:column;gap:6px}
+.peer{display:flex;justify-content:space-between;background:var(--noche-3);border-radius:12px;padding:10px 12px;font-weight:800}
+.peer small{color:var(--crema-tenue);font-weight:600}
+.versus{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.side{background:var(--noche-2);border-radius:14px;padding:8px 12px;display:flex;flex-direction:column;min-width:0}
+.side.right{text-align:right}
+.side .who{font-size:13px;font-weight:800;color:var(--crema-tenue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side .pts{font-family:var(--display);font-size:28px;color:var(--bombilla);font-variant-numeric:tabular-nums;line-height:1.1}
+.side .st{font-size:12px;color:var(--crema-tenue);min-height:16px}
+.side.done .st{color:var(--ok)}
+.vs{font-family:var(--display);font-size:18px;color:var(--naranja)}
+.timer{height:8px;background:var(--noche-2);border-radius:99px;overflow:hidden}
+.timer i{display:block;height:100%;background:var(--bombilla);border-radius:99px;transition:width .2s linear}
+.timer.low i{background:var(--ko)}
+.duel-res{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.duel-res div{background:var(--noche-3);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.duel-res b{font-size:13px;color:var(--crema-tenue)}
+.duel-res span{font-weight:800}
+.duel-res .p{font-family:var(--display);font-size:20px}
+.duel-res .p.plus{color:var(--ok)} .duel-res .p.minus{color:var(--ko)}
+.spark{color:var(--bombilla);font-size:12px;font-weight:800}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app" aria-live="polite"></div>
+
+<script>
+const BOLT='<svg viewBox="0 0 12 18" aria-hidden="true"><path d="M7 0L0 10h5l-1 8 8-11H7z"/></svg>';
+function bulb(level){ // level 0-3: brillo de la racha
+  const glow=['#2A3366','#7A6420','#C9A22C','#FFD23F'][level];
+  const halo=level>=3?'<circle cx="32" cy="26" r="24" fill="#FFD23F" opacity=".22"/>':'';
+  return `<svg viewBox="0 0 64 64" aria-hidden="true">${halo}<path d="M32 6a18 18 0 0 0-10 33c2 1.6 3 3.6 3 6v3h14v-3c0-2.4 1-4.4 3-6A18 18 0 0 0 32 6z" fill="${glow}"/><rect x="25" y="50" width="14" height="4" rx="2" fill="#F5EBDD"/><rect x="27" y="56" width="10" height="4" rx="2" fill="#F5EBDD"/><path d="M27 34l3-6 4 6 3-6" stroke="#0E1430" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+/* Preguntas: todas salen de episodios del canal con sus dos fuentes verificadas */
+const Q=[
+ {id:1,e:'💪',t:'vf',tema:'Tu cuerpo',q:'Las agujetas son cristales de ácido láctico.',a:1,titulo:'Las agujetas',dato:'El ácido láctico se va del músculo en pocas horas. Las agujetas son microroturas que tu cuerpo repara, y el músculo queda un poco más fuerte.',src:'Clínica Universidad de Navarra y Universidad de Murcia'},
+ {id:2,e:'🎃',t:'vf',tema:'Historia',q:'Antes de las calabazas, en Halloween se tallaban nabos.',a:0,titulo:'Halloween y los nabos',dato:'En Irlanda y Escocia tallaban nabos con caras por la leyenda de Jack el Tacaño. En Estados Unidos los cambiaron por calabazas.',src:'HISTORY.com y Clemson University'},
+ {id:3,e:'📱',t:'op',tema:'Tecnología',q:'Se te moja el móvil. ¿Qué es lo que sí funciona?',opts:['Meterlo en un bol de arroz','Golpecitos con el conector hacia abajo y dejarlo secar','Secarlo con el secador'],a:1,titulo:'El móvil y el arroz',dato:'La propia Apple desaconseja el arroz: los granos y el polvo pueden colarse por el puerto de carga.',src:'Soporte técnico de Apple y prueba de secantes de Gazelle'},
+ {id:4,e:'😮',t:'num',tema:'Récords',q:'Charles Osborne tuvo hipo seguido durante… ¿más o menos de 50 años?',a:0,titulo:'68 años de hipo',dato:'Empezó en 1922 y no paró hasta 1990: 68 años. Es récord Guinness.',src:'Guinness World Records y Smithsonian Magazine'},
+ {id:5,e:'🕰️',t:'vf',tema:'España',q:'España adelantó su reloj en 1940 "de forma provisional" y nunca lo deshizo.',a:0,titulo:'Una hora de más',dato:'Por geografía debería ir con la hora de Londres. Por eso en Galicia, en verano, el sol se pone pasadas las diez.',src:'Euronews y Moncloa.com'},
+ {id:6,e:'🧅',t:'op',tema:'Cocina',q:'¿Por qué lloras al cortar cebolla?',opts:['Por el olor fuerte','Porque suelta un gas irritante que llega a tus ojos','Porque te salpica el jugo'],a:1,titulo:'La cebolla se defiende',dato:'Al romper sus células se mezclan dos sustancias que forman un gas irritante. Un cuchillo afilado y una cebolla fría ayudan.',src:'Mental Floss e Intermountain Health'},
+ {id:7,e:'🍬',t:'vf',tema:'Mitos',q:'Si te tragas un chicle, se queda 7 años en tu estómago.',a:1,titulo:'El chicle',dato:'No se digiere, pero tu intestino lo empuja como todo lo demás y sale en pocos días.',src:'Mayo Clinic y ScienceABC'},
+ {id:8,e:'🗼',t:'op',tema:'Historia',q:'¿Cuántas veces "vendió" Victor Lustig la Torre Eiffel?',opts:['Ninguna, es una leyenda','Una','Dos'],a:2,titulo:'La Torre Eiffel, vendida',dato:'En 1925 se la "vendió" a un chatarrero, que se sintió tan ridículo que ni lo denunció. Así que lo intentó otra vez.',src:'Mental Floss y The Hustle'},
+ {id:9,e:'🚢',t:'op',tema:'Historia',q:'Violet Jessop iba a bordo del Olympic, el Titanic y el Britannic. ¿A cuántos de sus accidentes sobrevivió?',opts:['A uno','A dos','A los tres'],a:2,titulo:'La insumergible',dato:'Estaba en el choque del Olympic (1911), el hundimiento del Titanic (1912) y el del Britannic, que chocó con una mina en la Primera Guerra Mundial.',src:'Mental Floss y History.com'},
+ {id:10,e:'🐂',t:'vf',tema:'Animales',q:'Al toro lo enfurece el color rojo.',a:1,titulo:'El toro y el rojo',dato:'Embiste por el movimiento. Con banderas quietas de cualquier color apenas reacciona.',src:'Live Science y Ripley\'s'},
+ {id:11,e:'☢️',t:'vf',tema:'Historia',q:'Un hombre sobrevivió a las bombas de Hiroshima y de Nagasaki.',a:0,titulo:'Dos bombas atómicas',dato:'Tsutomu Yamaguchi estaba en Hiroshima por trabajo y volvió a Nagasaki justo antes de la segunda bomba. Vivió hasta los 93.',src:'Guinness World Records y ABC News'},
+ {id:12,e:'🌏',t:'vf',tema:'Espacio',q:'La Gran Muralla China se ve desde el espacio a simple vista.',a:1,titulo:'La Gran Muralla',dato:'El primer astronauta chino dijo en 2003 que no la vio. Es larga, pero estrecha y del color del paisaje.',src:'Scientific American y BBC Sky at Night'},
+ {id:13,e:'🍝',t:'num',tema:'Cocina',q:'Las ondas del microondas penetran en la comida… ¿más o menos de 5 cm?',a:1,titulo:'El microondas',dato:'Solo entran uno o dos centímetros. Capa fina y remover a mitad de tiempo.',src:'Maldita Ciencia y Xataka'},
+ {id:14,e:'🌴',t:'op',tema:'Historia',q:'Hiroo Onoda siguió luchando en la selva porque no creyó que la guerra había acabado. ¿Hasta cuándo?',opts:['1946','1960','1974'],a:2,titulo:'El soldado de Onoda',dato:'Casi 29 años después del final de la Segunda Guerra Mundial. Solo se rindió cuando su antiguo comandante fue a dárselo en persona.',src:'History Hit y USNI News'},
+ {id:15,e:'🏷️',t:'vf',tema:'Consumo',q:'Si el código de barras empieza por 84, el producto está hecho en España.',a:1,titulo:'El 84 del código de barras',dato:'Indica dónde se registró la empresa, no dónde se fabricó. Para el origen, mira la etiqueta.',src:'Maldita y Qamarero'},
+ {id:16,e:'🍦',t:'op',tema:'Tu cuerpo',q:'Te duele la frente por comer helado. ¿Qué lo alivia?',opts:['Apretar la lengua contra el paladar','Beber agua fría','Taparte la nariz'],a:0,titulo:'El dolor del helado',dato:'El frío llega al paladar y el nervio confunde el dolor con la frente. Calentar el paladar con la lengua lo corta.',src:'Popular Science y Healthline'},
+ {id:17,e:'🏙️',t:'op',tema:'Barcelona',q:'¿Quién diseñó el Eixample con sus esquinas cortadas?',opts:['Antoni Gaudí','Ildefons Cerdà','Lluís Domènech i Montaner'],a:1,titulo:'Los chaflanes del Eixample',dato:'Cerdà los cortó en su plan de 1860 para ganar visibilidad y que el tráfico fluyera. Antes de que existieran los coches.',src:'La Nación y Geography Fieldwork'},
+ {id:18,e:'🍞',t:'vf',tema:'Cocina',q:'El pan se pone duro porque se seca.',a:1,titulo:'El pan duro',dato:'Es el almidón, que cristaliza. La nevera lo acelera; el congelador casi lo para.',src:'Directo al Paladar y El Cronista'},
+ {id:19,e:'🥱',t:'vf',tema:'Animales',q:'Los perros se contagian más del bostezo de su dueño que del de un desconocido.',a:0,titulo:'Bostezos contagiosos',dato:'Entre la mitad y dos tercios de los adultos se contagian. Y los perros, más de quien conocen.',src:'Live Science, Medical News Today y Phys.org'},
+ {id:20,e:'💧',t:'op',tema:'Tu cuerpo',q:'¿Por qué se arrugan los dedos en el agua?',opts:['La piel se empapa','Lo provoca tu sistema nervioso','Se te enfrían las manos'],a:1,titulo:'Dedos arrugados',dato:'Es una respuesta del sistema nervioso, y ayuda a agarrar cosas mojadas. Neumáticos de lluvia en tus manos.',src:'Smithsonian y California Academy of Sciences'},
+ {id:21,e:'⛪',t:'num',tema:'Barcelona',q:'La Sagrada Família, con la cruz de la torre de Jesús, ¿mide más o menos de 170 metros?',a:0,titulo:'La iglesia más alta',dato:'Mide 172,5 m desde febrero de 2026 y supera a la catedral de Ulm, en el centenario de la muerte de Gaudí.',src:'¡HOLA!, Vatican News y Forbes'},
+ {id:22,e:'⚔️',t:'vf',tema:'Mitos',q:'Los vikingos llevaban cascos con cuernos.',a:1,titulo:'Cuernos vikingos',dato:'No se ha encontrado ni uno. Se los pusieron en 1876, en una ópera de Wagner.',src:'History Hit y Mental Floss'},
+ {id:23,e:'📏',t:'vf',tema:'Mitos',q:'Napoleón era muy bajito para su época.',a:1,titulo:'Napoleón',dato:'Medía casi 1,70, lo normal entonces. El mito viene de confundir pulgadas francesas e inglesas, y de los caricaturistas británicos.',src:'Today I Found Out y English Plus Podcast'},
+ {id:24,e:'🐙',t:'op',tema:'Animales',q:'¿Cuántos corazones tiene un pulpo?',opts:['Uno','Dos','Tres'],a:2,titulo:'Tres corazones',dato:'Dos para las branquias y uno para el cuerpo. Y su sangre es azul porque usa cobre en vez de hierro.',src:'BBC Science Focus y ScienceABC'},
+ {id:25,e:'🦇',t:'vf',tema:'Animales',q:'Los murciélagos son ciegos.',a:1,titulo:'Murciélagos',dato:'Ninguno es ciego. Muchos cazan con el eco de sus sonidos, pero también ven, y algunos muy bien.',src:'Reconnect With Nature y FactMyth'},
+ {id:26,e:'👶',t:'num',tema:'Tu cuerpo',q:'Un bebé al nacer tiene… ¿más o menos de 250 huesos?',a:0,titulo:'Huesos de bebé',dato:'Unos 300. De adulto tienes 206: no se pierden, se van uniendo.',src:'Healthline y Popular Science'},
+ {id:27,e:'🔔',t:'op',tema:'Viajes',q:'¿Qué es exactamente el Big Ben?',opts:['La torre del reloj','La campana','El reloj'],a:1,titulo:'El Big Ben',dato:'Es la campana. La torre se llama Torre Isabel desde 2012.',src:'History.com y GeekDad'},
+ {id:28,e:'🦓',t:'op',tema:'Animales',q:'Según un experimento de 2019, ¿para qué sirven las rayas de las cebras?',opts:['Para despistar a los leones','Para que las moscas no consigan aterrizar','Para refrescarse'],a:1,titulo:'Las rayas de la cebra',dato:'Vistieron caballos de cebra y las moscas no lograban posarse.',src:'University of Bristol y Axios'},
+ {id:29,e:'⏱️',t:'num',tema:'Historia',q:'La guerra más corta de la historia duró… ¿más o menos de una hora?',a:1,titulo:'La guerra más corta',dato:'Unos 38 minutos, entre Reino Unido y Zanzíbar. Y al perdedor le tocó pagar los proyectiles.',src:'Wikipedia y History Hit'},
+ {id:30,e:'🕵️',t:'vf',tema:'Barcelona',q:'Un espía de Barcelona convenció a Hitler de que el desembarco sería en Calais.',a:0,titulo:'Garbo',dato:'Joan Pujol se inventó una red entera de espías falsos. Lo condecoraron los dos bandos.',src:'English Heritage y BBC Mundo'},
+ {id:31,e:'🧮',t:'vf',tema:'Mitos',q:'Einstein suspendió matemáticas en el colegio.',a:1,titulo:'Einstein',dato:'Él mismo lo desmintió en 1935. El bulo pudo salir de una escala de notas que se invirtió en su escuela suiza.',src:'TIME y History.com'},
+ {id:32,e:'🍯',t:'vf',tema:'Comida',q:'La miel no caduca.',a:0,titulo:'La miel',dato:'En tumbas egipcias se ha encontrado miel de hace miles de años. Poca agua, mucho ácido y un truco de las abejas.',src:'Smithsonian Magazine y Discover Magazine'},
+ {id:33,e:'❄️',t:'vf',tema:'Tu cuerpo',q:'El músculo que te pone la piel de gallina está conectado con las células que fabrican pelo nuevo.',a:0,titulo:'Piel de gallina',dato:'Bajo cada pelo hay un músculo diminuto. En 2020, investigadores de Harvard vieron en ratones que ese músculo y su nervio están conectados a las células que fabrican pelo.',src:'Neuroscience News y Salon'},
+ {id:34,e:'🌅',t:'op',tema:'Ciencia',q:'El aire desvía la luz violeta aún más que la azul. Entonces, ¿por qué el cielo es azul y no violeta?',opts:['Llega menos violeta del sol y tus ojos son más sensibles al azul','El mar refleja su color en el cielo','El violeta se queda en la capa de ozono'],a:0,titulo:'El cielo azul',dato:'El aire desvía mucho más la luz azul que la roja. Y al atardecer, el azul se pierde por el camino: por eso se ve naranja.',src:'Met Office y Royal Museums Greenwich'},
+ {id:35,e:'✨',t:'op',tema:'Tu cuerpo',q:'¿Por qué ves estrellitas al levantarte rápido?',opts:['La sangre baja a las piernas y al cerebro le llega menos un momento','Te sube la tensión de golpe','Se te cansan los ojos'],a:0,titulo:'Estrellitas',dato:'Normalmente tu cuerpo lo arregla en segundos. Si te pasa a menudo o llegas a desmayarte, coméntaselo a tu médico.',src:'Manual MSD y Clínica Universidad de Navarra'},
+ {id:36,e:'🐟',t:'vf',tema:'Animales',q:'Los peces tienen memoria de tres segundos.',a:1,titulo:'La memoria del pez',dato:'Unos peces que aprendieron a asociar un sonido con la comida seguían acudiendo meses después, ya en el mar.',src:'Practical Fishkeeping y Mental Floss'},
+ {id:37,e:'🌊',t:'num',tema:'Viajes',q:'El Mar Muerto tiene… ¿más o menos de 5 veces la sal del mar normal?',a:0,titulo:'El Mar Muerto',dato:'Unas diez veces más. Con tanta sal, el agua te empuja hacia arriba y no te puedes hundir.',src:'How It Works y ScienceABC'},
+ {id:38,e:'🐪',t:'vf',tema:'Animales',q:'La joroba del camello es un depósito de agua.',a:1,titulo:'La joroba del camello',dato:'Es grasa, hasta unos 35 kilos. Y cuando encuentra agua, se bebe más de cien litros en un cuarto de hora.',src:'National Geographic y Cleveland Zoo Society'},
+ {id:39,e:'🪺',t:'vf',tema:'Animales',q:'El avestruz esconde la cabeza en la arena cuando tiene miedo.',a:1,titulo:'El avestruz',dato:'Si lo hiciera, se ahogaría. Lo que hace es meter la cabeza en el nido para girar los huevos.',src:'National Geographic Kids y McGill OSS'},
+ {id:40,e:'🤧',t:'vf',tema:'Tu cuerpo',q:'Hay gente que estornuda al mirar al sol, y se hereda.',a:0,titulo:'Estornudar con el sol',dato:'Se llama reflejo fótico del estornudo. No eres raro: viene de familia.',src:'Live Science y PBS'},
+ {id:41,e:'🖐️',t:'op',tema:'Ciencia',q:'Un médico se crujió los dedos de una sola mano durante 60 años. ¿Qué encontró al final?',opts:['Artritis en esa mano','Ninguna diferencia entre las dos manos','Dedos más largos'],a:1,titulo:'Crujirse los dedos',dato:'Comparó las dos manos y no vio diferencias. Le dieron el Ig Nobel por el experimento.',src:'The Tech e Improbable Research'},
+ {id:42,e:'🏛️',t:'op',tema:'Viajes',q:'¿Cuándo empezó a inclinarse la Torre de Pisa?',opts:['Antes de acabarla, en el segundo piso','Con un terremoto en 1900','En la Segunda Guerra Mundial'],a:0,titulo:'La Torre de Pisa',dato:'Se torcía mientras la construían. Las guerras, al parar las obras, dieron tiempo al terreno a asentarse y la salvaron.',src:'Wikipedia y Mental Floss'},
+ {id:43,e:'🦎',t:'op',tema:'Barcelona',q:'¿Qué iba a ser el Park Güell?',opts:['Un zoológico','Una urbanización de lujo','Un cementerio'],a:1,titulo:'El Park Güell',dato:'Había 60 parcelas previstas y solo se vendieron dos. En una de las casas vivió el propio Gaudí.',src:'My Modern Met y Barcelona-Tickets'},
+ {id:44,e:'🌳',t:'vf',tema:'Barcelona',q:'La Rambla de Barcelona era un cauce por donde bajaba el agua.',a:0,titulo:'La Rambla',dato:'Era una riera que bajaba de Collserola junto a la muralla. Hasta el nombre viene del árabe: arenal.',src:'Amics de la Rambla y Barcelona Urbana'},
+ {id:45,e:'🍭',t:'op',tema:'España',q:'¿Quién dibujó el logo de Chupa Chups?',opts:['Joan Miró','Salvador Dalí','Pablo Picasso'],a:1,titulo:'El logo de Chupa Chups',dato:'Dalí lo dibujó en menos de una hora en 1969. Y le aconsejó ponerlo arriba del envoltorio, y no en los lados.',src:'Wikipedia y Tasting Table'},
+ {id:46,e:'🧽',t:'vf',tema:'España',q:'La fregona es un invento español.',a:0,titulo:'La fregona',dato:'Manuel Jalón vio en Estados Unidos cómo limpiaban los hangares de aviones y en 1956 la llevó a las casas.',src:'Público y Telefónica'},
+ {id:47,e:'⚓',t:'op',tema:'España',q:'¿Qué botó Isaac Peral en 1888?',opts:['Un submarino eléctrico que lanzaba torpedos','El primer barco de vapor','Un hidroavión'],a:0,titulo:'El submarino de Peral',dato:'Funcionaba bajo el agua y lanzaba torpedos. Aun así, lo abandonaron.',src:'Biografías y Vidas y FECYT'},
+ {id:48,e:'🌙',t:'vf',tema:'Historia',q:'Cleopatra vivió más cerca de la llegada a la Luna que de la construcción de la Gran Pirámide.',a:0,titulo:'Cleopatra',dato:'Cuando ella nació, la Gran Pirámide ya tenía unos 2.500 años.',src:'WorldAtlas y Lenz'},
+ {id:49,e:'🎓',t:'vf',tema:'Historia',q:'La Universidad de Oxford es más antigua que la ciudad azteca de Tenochtitlán.',a:0,titulo:'Oxford y los aztecas',dato:'En Oxford ya se daban clases hacia 1096. Tenochtitlán se fundó en 1325.',src:'Smithsonian Magazine y FactMyth'},
+ {id:50,e:'🌄',t:'num',tema:'Tu cuerpo',q:'Por la mañana eres más alto que por la noche. ¿La diferencia es de más o menos de 5 cm?',a:1,titulo:'Más alto por la mañana',dato:'Alrededor de un centímetro. Los discos de la columna se aplastan durante el día y se recuperan por la noche.',src:'Jamaica Hospital Medical Center e Indiana Public Media'},
+ {id:51,e:'💬',t:'op',tema:'Tecnología',q:'¿Qué decía el primer SMS de la historia, en 1992?',opts:['Hello world','Merry Christmas','Happy new year'],a:1,titulo:'El primer SMS',dato:'Dos palabras: Merry Christmas. Y quien lo recibió no pudo contestar, porque su móvil no enviaba mensajes.',src:'Wikipedia y History.com'},
+ {id:52,e:'🍌',t:'vf',tema:'Comida',q:'Los plátanos son un poquito radiactivos.',a:0,titulo:'Plátanos radiactivos',dato:'Por su potasio. Tan poco que se usa en broma como unidad de medida. Y tú también lo eres.',src:'Wikipedia y Today I Found Out'},
+ {id:53,e:'🍓',t:'vf',tema:'Comida',q:'Para la botánica, la fresa es una baya y el plátano no.',a:1,titulo:'La fresa y el plátano',dato:'Es al revés: el plátano es una baya y la fresa no. Los puntitos de la fresa son, cada uno, un fruto.',src:'Science Notes y ZME Science'},
+ {id:54,e:'🧊',t:'op',tema:'Geografía',q:'¿Cuál es el desierto más grande del mundo?',opts:['El Sáhara','La Antártida','El Gobi'],a:1,titulo:'El desierto helado',dato:'Un desierto es un sitio donde casi no llueve, no donde hay arena. Y en la Antártida casi no cae nada.',src:'Britannica y WorldAtlas'},
+ {id:55,e:'🦈',t:'vf',tema:'Animales',q:'Los tiburones existen desde antes que los árboles.',a:0,titulo:'Tiburones antiguos',dato:'Cuando aparecieron, en tierra solo había musgos. Y han sobrevivido a cinco extinciones masivas.',src:'Discover Wildlife y EarthDate'}
+];
+const TIPO={vf:'Verdad o mentira',op:'Elige una',num:'Más o menos'};
+const BETS=[{v:1,pts:10,fus:1},{v:2,pts:25,fus:1},{v:3,pts:50,fus:2}];
+const ROUND=12, DAILY=7, FUSES=3;
+
+/* Guardado local (solo en este navegador) */
+const KEY='eureka-voltaje-v1';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}}
+let store=Object.assign({album:[],best:0,games:0,daily:null},load());
+
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function rng(seed){let h=1779033703^seed.length;for(let i=0;i<seed.length;i++){h=Math.imul(h^seed.charCodeAt(i),3432918353);h=h<<13|h>>>19}return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return (h>>>0)/4294967296}}
+function shuffle(a,r=Math.random){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+const app=document.getElementById('app');
+let G=null;
+
+function home(){
+  leaveRoom(); G=null;
+  const d=store.daily&&store.daily.date===today()?store.daily:null;
+  app.innerHTML=`
+  <section class="hero">
+    <div class="big-bulb">${bulb(3)}</div>
+    <h1>Eureka <span>Voltaje</span></h1>
+    <p>Apuesta voltaje a lo que crees saber. Si aciertas, la bombilla se enciende. Si fallas, se funde un fusible.</p>
+  </section>
+  <div class="stats">
+    <div class="stat"><b>${store.best}</b><span>Mejor marca</span></div>
+    <div class="stat"><b>${store.album.length}/${Q.length}</b><span>Álbum</span></div>
+    <div class="stat"><b>${store.games}</b><span>Partidas</span></div>
+  </div>
+  <div class="menu">
+    <button class="btn btn-main" id="b-play">Partida rápida<small>${ROUND} preguntas · 3 fusibles</small></button>
+    <button class="btn btn-alt" id="b-daily"><span>Reto del día<small>${DAILY} preguntas, las mismas para todos</small></span><span class="tag">${d?'Hecho: '+d.score:'Nuevo'}</span></button>
+    <button class="btn btn-alt" id="b-duel"><span>Duelo 1 contra 1<small>Contra la máquina o contra un amigo · gana quien acierta primero</small></span><span class="tag">Nuevo</span></button>
+    <button class="btn btn-alt" id="b-album"><span>Álbum de curiosidades<small>Cada acierto desbloquea una carta</small></span><span class="tag">${store.album.length}</span></button>
+  </div>
+  <div class="rules">
+    <h3>Cómo se juega</h3>
+    <ul>
+      <li><b>Elige voltaje</b> antes de responder: 1, 2 o 3 rayos. Más seguro estás, más arriesgas.</li>
+      <li><b>Aciertas:</b> +10, +25 o +50 puntos. <b>Fallas:</b> pierdes un fusible, o dos si ibas a 3 rayos.</li>
+      <li><b>Racha de 3 aciertos</b> = ¡Eureka! La bombilla se enciende y todo puntúa doble hasta que falles.</li>
+      <li>Cada fusible que te quede al final vale 30 puntos extra.</li>
+    </ul>
+  </div>`;
+  document.getElementById('b-play').onclick=()=>start('rapida');
+  document.getElementById('b-daily').onclick=()=>{ if(d){ end(d,true) } else start('diario') };
+  document.getElementById('b-album').onclick=album;
+  document.getElementById('b-duel').onclick=duelMenu;
+}
+
+function cardHTML(q,meta){
+  return `<article class="card">
+    <div class="card-top"><span class="type">${TIPO[q.t]}</span><div class="pic" aria-hidden="true">${q.e}</div></div>
+    <h2>${q.q}</h2>
+    <span class="topic">${meta}</span>
+  </article>`;
+}
+
+function start(mode){
+  const qs=mode==='diario'?shuffle(Q,rng('eureka'+today())).slice(0,DAILY):shuffle(Q).slice(0,ROUND);
+  G={mode,qs,i:0,fuses:FUSES,score:0,streak:0,bet:1,grid:[],done:false,newCards:0};
+  question();
+}
+
+function hud(){
+  const lvl=Math.min(G.streak,3);
+  const fus=Array.from({length:FUSES},(_,k)=>`<span class="fuse ${k<G.fuses?'':'off'}" title="Fusible"></span>`).join('');
+  return `<div class="hud">
+    <div class="fuses" aria-label="${G.fuses} fusibles">${fus}</div>
+    <div class="score" aria-label="Puntos">${G.score}</div>
+    <div class="streak">${G.streak>=3?'x2':'Racha '+G.streak}${bulb(lvl)}</div>
+  </div>
+  <div class="progress" aria-hidden="true"><i style="width:${(G.i/G.qs.length)*100}%"></i></div>`;
+}
+
+function question(){
+  const q=G.qs[G.i];
+  const opts=q.t==='vf'?['Verdad','Mentira']:q.t==='num'?['Más','Menos']:q.opts;
+  const two=q.t!=='op';
+  app.innerHTML=hud()+`
+  ${cardHTML(q,`${q.tema} · Pregunta ${G.i+1} de ${G.qs.length}`)}
+  <div class="bet">
+    <span class="eyebrow">Tu voltaje</span>
+    <div class="bet-row">${BETS.map(b=>`<button class="chip ${b.fus>1?'risk':''}" aria-pressed="${G.bet===b.v}" data-bet="${b.v}">
+      <span class="bolts">${BOLT.repeat(b.v)}</span><b>+${b.pts*(G.streak>=3?2:1)}</b><small>${b.fus>1?'arriesgas 2 fusibles':'arriesgas 1 fusible'}</small></button>`).join('')}</div>
+  </div>
+  <div class="answers ${two?'two':''}">${opts.map((o,k)=>`<button class="ans" data-k="${k}">${o}</button>`).join('')}</div>
+  <div id="reveal-slot"></div>`;
+  app.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{G.bet=+c.dataset.bet;app.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===c))});
+  app.querySelectorAll('.ans').forEach(b=>b.onclick=()=>answer(+b.dataset.k));
+}
+
+function answer(k){
+  const q=G.qs[G.i], b=BETS[G.bet-1], right=k===q.a;
+  app.querySelectorAll('.chip').forEach(c=>c.disabled=true);
+  app.querySelectorAll('.ans').forEach(el=>{const j=+el.dataset.k;el.disabled=true;if(j===q.a)el.classList.add('ok');else if(j===k)el.classList.add('ko');else el.classList.add('dim')});
+  let pts=0,flash='',unlock='';
+  if(right){
+    G.streak++;
+    const mult=G.streak>3?2:1; // la racha de 3 enciende la bombilla para las siguientes
+    pts=b.pts*mult; G.score+=pts;
+    if(G.streak===3) flash='<span class="eureka-flash">¡Eureka! Todo puntúa doble</span>';
+    if(!store.album.includes(q.id)){store.album.push(q.id);G.newCards++;unlock='<span class="unlock">Carta nueva en tu álbum</span>'}
+  } else {
+    G.streak=0; G.fuses=Math.max(0,G.fuses-b.fus);
+  }
+  G.grid.push(right?(G.bet===3?'🟨':'🟩'):'⬛');
+  save();
+  const last=G.i===G.qs.length-1||G.fuses===0;
+  document.getElementById('reveal-slot').outerHTML=`
+  <section class="reveal ${right?'good':'bad'}">
+    <div class="verdict"><span>${right?'¡Correcto!':'Pues no'}</span><span class="pts">${right?'+'+pts:'−'+b.fus+' fusible'+(b.fus>1?'s':'')}</span></div>
+    ${flash}
+    <p>${q.dato}</p>
+    <p class="src">Fuentes: ${q.src}</p>
+    ${unlock}
+    <button class="btn btn-main" id="b-next" style="justify-content:center">${last?(G.fuses===0?'Se fundió todo · Ver resultado':'Ver resultado'):'Siguiente pregunta'}</button>
+  </section>`;
+  // la cabecera refleja fusibles y puntos al instante
+  const h=app.querySelector('.hud'), p=app.querySelector('.progress');
+  const tmp=document.createElement('div');G.i++;tmp.innerHTML=hud();G.i--;
+  h.replaceWith(tmp.children[0]); p.replaceWith(tmp.children[0]);
+  const nb=document.getElementById('b-next'); nb.focus({preventScroll:true}); nb.scrollIntoView({behavior:'smooth',block:'nearest'});
+  nb.onclick=()=>{ if(last) finish(); else {G.i++;question();window.scrollTo({top:0})} };
+}
+
+function finish(){
+  const bonus=G.fuses*30; G.score+=bonus;
+  store.games++; if(G.score>store.best) store.best=G.score;
+  const res={date:today(),mode:G.mode,score:G.score,grid:G.grid.join(''),fuses:G.fuses,bonus,cards:G.newCards,total:G.qs.length};
+  if(G.mode==='diario') store.daily=res;
+  save(); end(res,false);
+}
+
+function end(r,again){
+  const share=`Eureka Voltaje ${r.mode==='diario'?'· Reto del '+r.date.split('-').reverse().slice(0,2).join('/'):''}\n${r.grid}\n${r.score} puntos · ${r.fuses} fusible${r.fuses===1?'':'s'} en pie`;
+  app.innerHTML=`
+  <section class="end">
+    <div class="big-bulb" style="width:80px;height:80px">${bulb(r.fuses>0?3:0)}</div>
+    <h2>${r.fuses>0?'¡Bombilla encendida!':'Apagón total'}</h2>
+    <div class="final">${r.score}</div>
+    <p class="note">${r.bonus?`Incluye ${r.bonus} puntos por ${r.fuses} fusible${r.fuses===1?'':'s'} en pie. `:''}${r.cards?`Has desbloqueado ${r.cards} carta${r.cards===1?'':'s'} nueva${r.cards===1?'':'s'}.`:''}${again?'Ya has jugado el reto de hoy. Mañana hay otro.':''}</p>
+    <div class="grid-share" aria-label="Resumen de respuestas">${r.grid}</div>
+    <p class="note">🟩 acierto · 🟨 acierto a 3 rayos · ⬛ fallo</p>
+    <div class="row">
+      <button class="btn btn-main" id="b-copy">Copiar resultado</button>
+      <button class="btn btn-alt" id="b-home" style="justify-content:center">Volver al inicio</button>
+    </div>
+    <p class="note" id="copied" hidden>Copiado. Pégalo donde quieras.</p>
+  </section>`;
+  document.getElementById('b-home').onclick=home;
+  document.getElementById('b-copy').onclick=()=>{
+    const ok=()=>{document.getElementById('copied').hidden=false};
+    try{navigator.clipboard.writeText(share).then(ok,()=>fallback(share,ok))}catch(e){fallback(share,ok)}
+  };
+}
+function fallback(t,ok){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok()}catch(e){}ta.remove()}
+
+function album(){
+  app.innerHTML=`
+  <div class="album-head"><h2>Tu álbum</h2><button class="back" id="b-back">← Inicio</button></div>
+  <p class="note">${store.album.length} de ${Q.length} cartas. Acierta una pregunta para desbloquear su curiosidad.</p>
+  <div class="album">${Q.map(q=>store.album.includes(q.id)
+    ?`<div class="acard"><span class="pic-s" aria-hidden="true">${q.e}</span><span class="n">Nº ${String(q.id).padStart(2,'0')} · ${q.tema}</span><h4>${q.titulo}</h4><p>${q.dato}</p></div>`
+    :`<div class="acard locked"><span class="n">Nº ${String(q.id).padStart(2,'0')}</span>${bulb(0)}<span class="note">${q.tema}</span></div>`).join('')}</div>`;
+  document.getElementById('b-back').onclick=home;
+}
+
+/* ---------------- Duelo 1 contra 1 ---------------- */
+const DUEL_N=10, DUEL_T=20000, GRACE=1500, CHISPA=15;
+let D=null, ROOM=null, ROOMAPI=null, unsubPeers=null, tickId=null, botId=null, advId=null;
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function nOpts(q){return q.t==='op'?3:2}
+function optsOf(q){return q.t==='vf'?['Verdad','Mentira']:q.t==='num'?['Más','Menos']:q.opts}
+function clearTimers(){clearInterval(tickId);clearTimeout(botId);clearTimeout(advId);tickId=botId=advId=null}
+function leaveRoom(){clearTimers();if(unsubPeers){try{unsubPeers()}catch(e){}unsubPeers=null}if(ROOM){ROOM.leave().catch(()=>{});ROOM=null}D=null}
+
+/* Puntos de una respuesta: acierto suma lo apostado (+ chispa si fue el primero en acertar), fallo lo resta */
+function qPoints(q,a,other){
+  if(!a) return {pts:0,txt:'Sin respuesta',spark:false};
+  const b=BETS[a.b-1];
+  if(a.k!==q.a) return {pts:-b.pts,spark:false};
+  const beaten=other&&other.k===q.a&&other.ms<a.ms;
+  return {pts:b.pts+(beaten?0:CHISPA),spark:!beaten};
+}
+function totals(upto){
+  let me=0,op=0;
+  for(let i=0;i<=upto&&i<D.qs.length;i++){const q=D.qs[i];me+=qPoints(q,D.me.ans[i],D.opp.ans[i]).pts;op+=qPoints(q,D.opp.ans[i],D.me.ans[i]).pts}
+  return {me,op};
+}
+
+function duelMenu(){
+  leaveRoom(); G=null;
+  app.innerHTML=`
+  <div class="album-head"><h2>Duelo</h2><button class="back" id="b-back">← Inicio</button></div>
+  <p class="note">${DUEL_N} preguntas, 20 segundos cada una. Apuestas voltaje: si aciertas sumas lo apostado, si fallas lo restas. Quien acierta primero se lleva la chispa: +${CHISPA}.</p>
+  <div class="field"><label for="nick">Tu nombre</label><input id="nick" maxlength="16" placeholder="Escribe tu nombre" value="${esc(store.nick||'')}"></div>
+  <button class="btn btn-main" id="b-bot"><span>Contra Edison<small>La máquina acierta unas 7 de cada 10 y tarda de 3 a 9 segundos</small></span></button>
+  <div class="panel">
+    <h3>Contra un amigo, online</h3>
+    <button class="btn btn-alt" id="b-create" style="justify-content:center">Crear sala</button>
+    <div class="join-row"><div class="field" style="flex:1"><label for="code">O entra con un código</label><input id="code" maxlength="4" placeholder="ABCD" autocomplete="off"></div><button class="btn btn-alt" id="b-join" style="align-self:flex-end">Unirme</button></div>
+    <p class="note" id="online-msg">${IN_CLAUDE?'Tu amigo tiene que abrir esta misma página con su cuenta de Claude.':'Tu amigo solo tiene que abrir esta web y escribir el código.'}</p>
+  </div>`;
+  const saveNick=()=>{store.nick=(document.getElementById('nick').value||'').trim().slice(0,16);save()};
+  document.getElementById('b-back').onclick=home;
+  document.getElementById('b-bot').onclick=()=>{saveNick();startBot()};
+  document.getElementById('b-create').onclick=()=>{saveNick();enterRoom(randomCode(),true)};
+  document.getElementById('b-join').onclick=()=>{saveNick();const c=(document.getElementById('code').value||'').trim().toUpperCase();if(!/^[A-Z0-9]{4}$/.test(c)){onlineMsg('El código tiene 4 letras o números.');return}enterRoom(c,false)};
+}
+function onlineMsg(t){const m=document.getElementById('online-msg');if(m)m.textContent=t}
+function randomCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s}
+function myNick(){return store.nick||'Tú'}
+
+/* Contra la máquina */
+function startBot(){
+  clearTimers();
+  D={mode:'bot',qs:shuffle(Q).slice(0,DUEL_N),qi:-1,me:{nick:myNick(),ans:{}},opp:{nick:'Edison',ans:{}},phase:'q',revealed:-1};
+  goQuestion(0);
+}
+function scheduleBot(){
+  const q=D.qs[D.qi], qi=D.qi, right=Math.random()<0.7;
+  let k=q.a; if(!right){const others=[...Array(nOpts(q)).keys()].filter(x=>x!==q.a);k=others[Math.floor(Math.random()*others.length)]}
+  const b=right?(Math.random()<.6?3:2):(Math.random()<.6?1:2);
+  const ms=3000+Math.random()*6000;
+  botId=setTimeout(()=>{if(!D||D.qi!==qi||D.phase!=='q')return;D.opp.ans[qi]={k,b,ms};updateVersus();checkReveal()},ms);
+}
+
+/* Online, con salas de la página */
+async function getRoomApi(){
+  if(ROOMAPI) return ROOMAPI;
+  if(!window.claude||typeof window.claude.use!=='function') return null;
+  try{ROOMAPI=await window.claude.use('room')}catch(e){ROOMAPI=null}
+  return ROOMAPI;
+}
+/* Fuera de Claude (web pública): duelo directo entre los dos navegadores con PeerJS */
+const IN_CLAUDE=!!(window.claude&&typeof window.claude.use==='function');
+function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const s=document.createElement('script');s.src=window.PEERJS_SRC||'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';s.onload=res;s.onerror=()=>rej(new Error('peerjs'));document.head.appendChild(s)})}
+async function peerRoom(code,host){
+  await loadPeerJS();
+  const id='eureka-voltaje-'+code.toLowerCase();
+  const me={presence:{},sameTab:true,isMe:true,kind:'viewer'};
+  let other=null,conn=null,handlers=[];
+  const peer=host?new Peer(id):new Peer();
+  const snapshot=()=>({peers:[me].concat(other?[other]:[])});
+  const fire=()=>{const s=snapshot();handlers.forEach(h=>{try{h(s)}catch(e){}})};
+  const send=()=>{if(conn&&conn.open){try{conn.send({p:me.presence})}catch(e){}}};
+  const wire=c=>{conn=c;
+    c.on('open',()=>{other={presence:{},sameTab:false,isMe:false,kind:'viewer'};send();fire()});
+    c.on('data',d=>{if(d&&d.p&&typeof d.p==='object'){other={presence:d.p,sameTab:false,isMe:false,kind:'viewer'};fire()}});
+    c.on('close',()=>{if(conn===c){other=null;conn=null;fire()}});};
+  await new Promise((res,rej)=>{const t=setTimeout(()=>rej({type:'timeout'}),10000);peer.on('open',()=>{clearTimeout(t);res()});peer.on('error',e=>{clearTimeout(t);rej(e)})});
+  if(host){peer.on('connection',c=>{if(conn&&conn.open){c.close();return}wire(c)})}
+  else{
+    await new Promise((res,rej)=>{const t=setTimeout(()=>rej({type:'peer-unavailable'}),10000);const c=peer.connect(id,{reliable:true});wire(c);c.on('open',()=>{clearTimeout(t);res()});peer.on('error',e=>{clearTimeout(t);rej(e)})});
+  }
+  peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
+  return{
+    presence(patch){const n=Object.assign({},me.presence);for(const k in patch){if(patch[k]===null)delete n[k];else n[k]=patch[k]}me.presence=n;send();fire();return Promise.resolve()},
+    onPeers(fn){handlers.push(fn);setTimeout(()=>fn(snapshot()),0);return()=>{handlers=handlers.filter(h=>h!==fn)}},
+    leave(){try{peer.destroy()}catch(e){}return Promise.resolve()}
+  };
+}
+async function enterRoom(code,host){
+  onlineMsg('Conectando…');
+  let r=null;
+  if(IN_CLAUDE){
+    const api=await getRoomApi();
+    if(!api){onlineMsg('El duelo online no está disponible aquí: hace falta abrir la página con una cuenta de Claude. Mientras, puedes jugar contra Edison.');return}
+    try{r=await api.join('eureka-'+code.toLowerCase())}catch(e){onlineMsg('No he podido entrar en la sala. Prueba otra vez en unos segundos.');return}
+  } else {
+    try{r=await peerRoom(code,host)}catch(e){
+      const t=e&&e.type;
+      if(host&&t==='unavailable-id'){return enterRoom(randomCode(),true)}
+      onlineMsg(t==='peer-unavailable'?'No encuentro esa sala. Revisa el código, o pide a tu amigo que la vuelva a crear.':'No he podido conectar. Revisa tu conexión y prueba otra vez.');return}
+  }
+  ROOM=r;
+  D={mode:'online',code,host,seed:null,qs:null,qi:-1,me:{nick:myNick(),ans:{}},opp:{nick:'Rival',ans:{},here:false},phase:'lobby',revealed:-1,oppRaw:null};
+  ROOM.presence({nick:D.me.nick,host:!!host,ans:{seed:null,a:{}},game:null}).catch(()=>{});
+  unsubPeers=ROOM.onPeers(onRoomPeers,()=>{if(D&&D.phase==='lobby')lobby('Se ha perdido la conexión con la sala.')});
+  lobby();
+}
+function cleanAns(x,seed){
+  const out={}; if(!x||x.seed!==seed||!x.a||typeof x.a!=='object') return out;
+  for(const key of Object.keys(x.a)){const i=+key,v=x.a[key];
+    if(Number.isInteger(i)&&i>=0&&i<DUEL_N&&v&&Number.isInteger(v.k)&&v.k>=0&&v.k<3&&[1,2,3].includes(v.b)&&typeof v.ms==='number'&&isFinite(v.ms)) out[i]={k:v.k,b:v.b,ms:Math.min(Math.max(0,v.ms),DUEL_T)}}
+  return out;
+}
+function onRoomPeers(change){
+  if(!D||D.mode!=='online') return;
+  const others=change.peers.filter(p=>!p.sameTab&&p.kind==='viewer');
+  const opp=others[0]||null;
+  D.opp.here=!!opp;
+  D.opp.nick=opp&&opp.presence&&opp.presence.nick?String(opp.presence.nick).slice(0,16):'Rival';
+  D.oppRaw=opp?opp.presence.ans:null;
+  if(!D.host){
+    const hp=others.find(p=>p.presence&&p.presence.host);
+    const g=hp&&hp.presence.game;
+    if(g&&typeof g.seed==='string'&&Number.isInteger(g.qi)){
+      if(g.seed!==D.seed) newGame(g.seed,false);
+      if(g.qi>D.qi){ if(g.qi>=DUEL_N){D.opp.ans=cleanAns(D.oppRaw,D.seed);duelEnd();return} goQuestion(g.qi); }
+    }
+  }
+  if(D.seed) D.opp.ans=cleanAns(D.oppRaw,D.seed);
+  if(D.phase==='lobby') lobby();
+  else if(D.phase==='q'){updateVersus();checkReveal()}
+  else if(D.phase==='r'){updateVersus()}
+}
+function newGame(seed,announce){
+  clearTimers();
+  D.seed=seed; D.qs=shuffle(Q,rng(seed)).slice(0,DUEL_N); D.qi=-1; D.revealed=-1; D.me.ans={}; D.opp.ans={};
+  const patch={ans:{seed,a:{}}}; if(announce) patch.game={seed,qi:0};
+  ROOM&&ROOM.presence(patch).catch(()=>{});
+}
+function lobby(err){
+  D.phase='lobby';
+  app.innerHTML=`
+  <div class="album-head"><h2>Sala de duelo</h2><button class="back" id="b-back">← Salir</button></div>
+  <div class="panel">
+    <span class="eyebrow" style="text-align:center">Código de la sala</span>
+    <div class="code">${esc(D.code)}</div>
+    <p class="note" style="text-align:center">${D.host?'Pásale este código a tu rival. Tiene que abrir esta misma página y entrar en Duelo → Unirme.':'Estás dentro. Esperando a que empiece la partida.'}</p>
+  </div>
+  <div class="peers">
+    <div class="peer"><span>${esc(D.me.nick)}</span><small>tú${D.host?' · creaste la sala':''}</small></div>
+    ${D.opp.here?`<div class="peer"><span>${esc(D.opp.nick)}</span><small>${D.host?'listo':'creó la sala'}</small></div>`:`<div class="peer"><span style="color:var(--crema-tenue)">Esperando rival…</span><small></small></div>`}
+  </div>
+  ${err?`<p class="note" style="color:var(--ko)">${esc(err)}</p>`:''}
+  ${D.host?`<button class="btn btn-main" id="b-start" style="justify-content:center" ${D.opp.here?'':'disabled'}>${D.opp.here?'Empezar duelo':'Falta tu rival'}</button>`:''}`;
+  document.getElementById('b-back').onclick=()=>{leaveRoom();duelMenu()};
+  const s=document.getElementById('b-start'); if(s) s.onclick=hostStart;
+}
+function hostStart(){ if(!D||!D.host) return; newGame(D.code+'-'+Date.now().toString(36),true); goQuestion(0) }
+function hostAdvance(){
+  if(!D||!D.host||D.mode!=='online') return;
+  const next=D.qi+1;
+  ROOM&&ROOM.presence({game:{seed:D.seed,qi:next}}).catch(()=>{});
+  if(next>=DUEL_N) duelEnd(); else goQuestion(next);
+}
+
+/* Pantallas comunes del duelo */
+function versusHTML(){
+  const t=totals(D.revealed);
+  const st=(a)=>D.phase==='q'?(a?'ha respondido':'pensando…'):'';
+  const meA=D.me.ans[D.qi], opA=D.opp.ans[D.qi];
+  return `<div class="versus">
+    <div class="side ${D.phase==='q'&&meA?'done':''}"><span class="who">${esc(D.me.nick)}</span><span class="pts">${t.me}</span><span class="st">${st(meA)}</span></div>
+    <span class="vs">VS</span>
+    <div class="side right ${D.phase==='q'&&opA?'done':''}"><span class="who">${esc(D.opp.nick)}</span><span class="pts">${t.op}</span><span class="st">${D.mode==='online'&&!D.opp.here?'desconectado':st(opA)}</span></div>
+  </div>`;
+}
+function updateVersus(){const v=app.querySelector('.versus');if(v){const d=document.createElement('div');d.innerHTML=versusHTML();v.replaceWith(d.firstElementChild)}}
+
+function goQuestion(i){
+  clearTimers();
+  D.qi=i; D.phase='q'; D.t0=Date.now(); D.bet=1;
+  const q=D.qs[i], opts=optsOf(q);
+  app.innerHTML=versusHTML()+`
+  <div class="timer" id="timer"><i style="width:100%"></i></div>
+  ${cardHTML(q,`${q.tema} · Pregunta ${i+1} de ${DUEL_N}`)}
+  <div class="bet">
+    <span class="eyebrow">Tu voltaje</span>
+    <div class="bet-row">${BETS.map(b=>`<button class="chip" aria-pressed="${b.v===1}" data-bet="${b.v}"><span class="bolts">${BOLT.repeat(b.v)}</span><b>±${b.pts}</b><small>${b.v===1?'prudente':b.v===2?'seguro':'a por todas'}</small></button>`).join('')}</div>
+  </div>
+  <div class="answers ${q.t!=='op'?'two':''}">${opts.map((o,k)=>`<button class="ans" data-k="${k}">${o}</button>`).join('')}</div>
+  <div id="reveal-slot"></div>`;
+  app.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{D.bet=+c.dataset.bet;app.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===c))});
+  app.querySelectorAll('.ans').forEach(b=>b.onclick=()=>myAnswer(+b.dataset.k));
+  window.scrollTo({top:0});
+  if(D.mode==='bot') scheduleBot();
+  tickId=setInterval(tick,200);
+  if(D.mode==='online') checkReveal();
+}
+function lockQuestion(chosen){
+  app.querySelectorAll('.chip,.ans').forEach(el=>el.disabled=true);
+  if(chosen!=null){const el=app.querySelector(`.ans[data-k="${chosen}"]`);if(el)el.style.borderColor='var(--bombilla)'}
+}
+function myAnswer(k){
+  if(!D||D.phase!=='q'||D.me.ans[D.qi]) return;
+  const ms=Math.min(Date.now()-D.t0,DUEL_T);
+  D.me.ans[D.qi]={k,b:D.bet,ms};
+  lockQuestion(k);
+  if(D.mode==='online'&&ROOM) ROOM.presence({ans:{seed:D.seed,a:D.me.ans}}).catch(()=>{});
+  updateVersus(); checkReveal();
+}
+function tick(){
+  if(!D||D.phase!=='q') return;
+  const el=Date.now()-D.t0, left=Math.max(0,1-el/DUEL_T);
+  const t=document.getElementById('timer'); if(t){t.firstElementChild.style.width=(left*100)+'%';t.classList.toggle('low',left<.25)}
+  if(el>=DUEL_T&&!D.me.ans[D.qi]&&!D.timedOut){D.timedOut=true;lockQuestion(null)}
+  checkReveal();
+}
+function checkReveal(){
+  if(!D||D.phase!=='q') return;
+  const el=Date.now()-D.t0, both=D.me.ans[D.qi]&&D.opp.ans[D.qi];
+  const limit=D.mode==='online'?DUEL_T+GRACE:DUEL_T;
+  if(both||el>=limit||(D.mode==='online'&&!D.opp.here&&D.me.ans[D.qi])) duelReveal();
+}
+function duelReveal(){
+  clearTimers(); D.phase='r'; D.timedOut=false; D.revealed=D.qi;
+  const q=D.qs[D.qi], opts=optsOf(q), a=D.me.ans[D.qi], o=D.opp.ans[D.qi];
+  const pm=qPoints(q,a,o), po=qPoints(q,o,a);
+  app.querySelectorAll('.ans').forEach(el=>{const j=+el.dataset.k;el.disabled=true;if(j===q.a)el.classList.add('ok');else if(a&&j===a.k)el.classList.add('ko');else el.classList.add('dim')});
+  app.querySelectorAll('.chip').forEach(c=>c.disabled=true);
+  let unlock='';
+  if(a&&a.k===q.a&&!store.album.includes(q.id)){store.album.push(q.id);save();unlock='<span class="unlock">Carta nueva en tu álbum</span>'}
+  const line=(x,p)=>x?`<span>${esc(opts[x.k])} · ${x.b} rayo${x.b>1?'s':''} · ${(x.ms/1000).toFixed(1)} s</span><span class="p ${p.pts>=0?'plus':'minus'}">${p.pts>0?'+':''}${p.pts}</span>${p.spark?'<span class="spark">Chispa: acertó primero</span>':''}`:`<span>Sin respuesta</span><span class="p">0</span>`;
+  const last=D.qi===DUEL_N-1;
+  const next=D.mode==='bot'||D.host
+    ?`<button class="btn btn-main" id="b-next" style="justify-content:center">${last?'Ver resultado':'Siguiente pregunta'}</button>`
+    :`<p class="note" style="text-align:center">La siguiente llega en unos segundos…</p>`;
+  document.getElementById('reveal-slot').outerHTML=`
+  <section class="reveal ${a&&a.k===q.a?'good':'bad'}">
+    <div class="duel-res"><div><b>${esc(D.me.nick)}</b>${line(a,pm)}</div><div><b>${esc(D.opp.nick)}</b>${line(o,po)}</div></div>
+    <p>${q.dato}</p>
+    <p class="src">Fuentes: ${q.src}</p>
+    ${unlock}
+    ${next}
+  </section>`;
+  updateVersus();
+  const nb=document.getElementById('b-next');
+  if(nb){nb.scrollIntoView({behavior:'smooth',block:'nearest'});nb.onclick=()=>{clearTimeout(advId);D.mode==='bot'?(last?duelEnd():goQuestion(D.qi+1)):hostAdvance()}}
+  if(D.mode==='online'&&D.host) advId=setTimeout(hostAdvance,6000);
+}
+function duelEnd(){
+  clearTimers(); D.phase='end'; D.revealed=DUEL_N-1;
+  const t=totals(DUEL_N-1), win=t.me>t.op, tie=t.me===t.op;
+  if(win){store.wins=(store.wins||0)+1;save()}
+  app.innerHTML=`
+  <section class="end">
+    <div class="big-bulb" style="width:80px;height:80px">${bulb(win||tie?3:0)}</div>
+    <h2>${tie?'Empate':win?'¡Has ganado!':`Gana ${esc(D.opp.nick)}`}</h2>
+    ${versusHTML()}
+    <p class="note">${D.mode==='online'&&!D.host?'Si tu rival pide la revancha, empezará sola.':'Las cartas que hayas acertado ya están en tu álbum.'}</p>
+    <div class="row">
+      ${D.mode==='bot'||D.host?'<button class="btn btn-main" id="b-again" style="justify-content:center">Revancha</button>':''}
+      <button class="btn btn-alt" id="b-out" style="justify-content:center">Salir</button>
+    </div>
+  </section>`;
+  const ag=document.getElementById('b-again');
+  if(ag) ag.onclick=()=>D.mode==='bot'?startBot():hostStart();
+  document.getElementById('b-out').onclick=()=>{leaveRoom();home()};
+}
+
+home();
+</script>
+<script>
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+</script>
+</body>
+</html>

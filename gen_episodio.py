@@ -29,9 +29,12 @@ else:
     T = sys.argv[2:]
 OUT = f"{D}/episodios/{num}"; os.makedirs(OUT, exist_ok=True)
 
-ck = torch.load(ADAPTER, map_location="cuda")
+DEV = "cuda" if torch.cuda.is_available() else "cpu"
+print("dispositivo:", DEV, flush=True)
+if DEV == "cpu": torch.set_num_threads(os.cpu_count() or 2)
+ck = torch.load(ADAPTER, map_location=DEV)
 cfg = ck["lora_config"]
-m = ChatterboxMultilingualTTS.from_pretrained(device="cuda")
+m = ChatterboxMultilingualTTS.from_pretrained(device=DEV)
 L = inject_lora_layers(m.t3.tfmr, cfg["target_modules"], rank=cfg["rank"], alpha=cfg["alpha"], dropout=0.0)
 if "lora_weights" in ck:
     W = {k: (v["lora_A"], v["lora_B"]) for k, v in ck["lora_weights"].items()}
@@ -39,14 +42,14 @@ else:
     s = ck["lora_state_dict"]; W = {k[:-7]: (s[k], s[k[:-7] + ".lora_B"]) for k in s if k.endswith(".lora_A")}
 n = 0
 for k, (a, b) in W.items():
-    if k in L: L[k].lora_A.data = a.to("cuda"); L[k].lora_B.data = b.to("cuda"); n += 1
+    if k in L: L[k].lora_A.data = a.to(DEV); L[k].lora_B.data = b.to(DEV); n += 1
 print("capas LoRA cargadas:", n, flush=True)
 
 df = pd.read_csv("audio_data/metadata.csv")
 qs = df[df.transcription.str.strip().str.endswith("?") & (df.duration_seconds > 2.5) & (df.duration_seconds < 8)]
 REFQ = "audio_data/" + qs.iloc[0].file_name
 REFA = "audio_data/" + df[(df.duration_seconds > 7) & (df.duration_seconds < 10)].iloc[0].file_name
-asr = WhisperModel("medium", device="cuda", compute_type="float16")
+asr = WhisperModel("medium", device="cuda", compute_type="float16") if DEV == "cuda" else WhisperModel("small", device="cpu", compute_type="int8")
 SR = m.sr
 norm = lambda t: re.sub(r"[^a-záéíóúñü]", "", t.lower())
 VARIANTES = {"branquias": ["branquias", "bránquias", "brankias"], "pulpo": ["pulpo", "púlpo"]}
@@ -98,7 +101,7 @@ for i, t in enumerate(T, 1):
     q = t.strip().endswith("?")
     mejor = None; intentos = 0
     for texto in variantes(t):
-        for _ in range(3 if texto == t else 2):
+        for _ in range((3 if texto == t else 2) if DEV == "cuda" else (2 if texto == t else 1)):
             intentos += 1
             w = toma(texto, q)
             d = defectos(w)

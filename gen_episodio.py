@@ -66,7 +66,8 @@ def variantes(t):
     return out
 
 def defectos(w):
-    if np.max(np.abs(w)) > 0.995: return "recorte"
+    m = np.max(np.abs(w))
+    if np.sum((np.abs(np.diff(w)) < 1e-7) & (np.abs(w[1:]) > 0.97 * m)) > 3: return "recorte"  # mesetas = saturación real
     fr = librosa.feature.rms(y=w, frame_length=1024, hop_length=256)[0]
     act = fr > 0.02 * fr.max()
     idx = np.where(act)[0]

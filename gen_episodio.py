@@ -51,7 +51,15 @@ print("capas LoRA cargadas:", n, flush=True)
 df = pd.read_csv("audio_data/metadata.csv")
 qs = df[df.transcription.str.strip().str.endswith("?") & (df.duration_seconds > 2.5) & (df.duration_seconds < 8)]
 REFQ = "audio_data/" + qs.iloc[0].file_name
-REFA = "audio_data/" + df[(df.duration_seconds > 7) & (df.duration_seconds < 10)].iloc[0].file_name
+def aire(path):
+    y, sr = librosa.load(path, sr=16000)
+    r = librosa.feature.rms(y=y, frame_length=512, hop_length=160)[0]; r = r / (r.max() + 1e-9)
+    return float(np.mean((r > 0.02) & (r < 0.12)))  # tramos flojos entre palabras = respiraciones y suspiros
+cand = df[(df.duration_seconds > 6) & (df.duration_seconds < 10)].head(25).file_name
+REFA = "audio_data/" + min(cand, key=lambda f: aire("audio_data/" + f))
+candq = qs.head(10).file_name
+REFQ = "audio_data/" + min(candq, key=lambda f: aire("audio_data/" + f))
+print("referencias:", REFA, REFQ, flush=True)
 asr = WhisperModel("medium", device="cuda", compute_type="float16") if DEV == "cuda" else WhisperModel("small", device="cpu", compute_type="int8")
 SR = m.sr
 norm = lambda t: re.sub(r"[^a-záéíóúñü]", "", t.lower())
@@ -84,9 +92,22 @@ def toma(texto, q):
 
 def entiende(w, ref):
     w16 = librosa.resample(w, orig_sr=SR, target_sr=16000)
-    segs, _ = asr.transcribe(w16, language="es", beam_size=5)
+    segs, _ = asr.transcribe(w16, language="es", beam_size=5, word_timestamps=True)
+    segs = list(segs)
     hyp = " ".join(s.text for s in segs).strip()
-    return SequenceMatcher(None, norm(ref), norm(hyp)).ratio(), hyp
+    palabras = [(wd.start, wd.end) for s in segs for wd in (s.words or [])]
+    return SequenceMatcher(None, norm(ref), norm(hyp)).ratio(), hyp, palabras
+
+def quita_respiros(w, palabras):
+    """Baja 30 dB todo lo que no es palabra (respiraciones, suspiros, chasquidos), con fundidos suaves."""
+    if not palabras: return w, 0
+    g = np.full(len(w), 0.03, np.float32)
+    for a, b in palabras:
+        i, j = max(0, int((a - 0.04) * SR)), min(len(w), int((b + 0.06) * SR))
+        g[i:j] = 1.0
+    k = int(0.02 * SR); g = np.convolve(g, np.ones(k) / k, mode="same").astype(np.float32)
+    quitado = float(np.sum((w * (1 - g)) ** 2) / (np.sum(w ** 2) + 1e-9))
+    return w * g, quitado
 
 def limpia(w):
     w = sosfiltfilt(HP, w).astype(np.float32)
@@ -109,18 +130,19 @@ for i, t in enumerate(T, 1):
             intentos += 1
             w = toma(texto, q)
             d = defectos(w)
-            sim, hyp = entiende(w, t)
+            sim, hyp, pal = entiende(w, t)
             dur = len(w) / SR; cps = len(t) / max(dur, 0.1)
             if not (6 < cps < 22): d = d or f"ritmo raro {cps:.0f} letras/s"
             score = sim - (0.2 if d else 0)
-            if mejor is None or score > mejor[0]: mejor = (score, sim, w, hyp, d, texto)
+            if mejor is None or score > mejor[0]: mejor = (score, sim, w, hyp, d, texto, pal)
             if sim >= 0.98 and not d: break
         if mejor[1] >= 0.98 and not mejor[4]: break
-    _, sim, w, hyp, d, texto = mejor
+    _, sim, w, hyp, d, texto, pal = mejor
+    w, aire_q = quita_respiros(w, pal)
     w = limpia(w)
     sf.write(f"{OUT}/{i:02d}.wav", w, SR)
     partes.append(w)
-    linea = f"{i:02d} {'OK ' if sim >= 0.95 and not d else 'REVISAR'} {sim:.2f} tomas={intentos} | {t} | oído: {hyp}" + (f" | {d}" if d else "") + (f" | escrito como: {texto}" if texto != t else "")
+    linea = f"{i:02d} {'OK ' if sim >= 0.95 and not d else 'REVISAR'} {sim:.2f} tomas={intentos} | {t} | oído: {hyp}" + (f" | {d}" if d else "") + (f" | escrito como: {texto}" if texto != t else "") + f" | respiros quitados {aire_q*100:.1f}%"
     print(linea, flush=True); informe.append(linea)
 
 voz = np.concatenate(partes)
